@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landing Page Referral</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 36px;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        p {
+            font-size: 16px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+            line-height: 1.5;
+        }
+
+        .cta-button {
+            background: #FFD700;
+            color: #333;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        .features {
+            display: flex;
+            justify-content: space-around;
+            margin: 40px 0;
+            width: 100%;
+        }
+
+        .feature {
+            text-align: center;
+            flex: 1;
+            padding: 0 10px;
+        }
+
+        .feature-icon {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .feature-text {
+            font-size: 14px;
+        }
+
+        /* Overlay untuk popup */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Popup container */
+        .popup {
+            background: white;
+            width: 90%;
+            max-width: 350px;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transform: scale(0.8);
+            transition: all 0.4s ease;
+            color: #333;
+            position: relative;
+        }
+
+        .overlay.active .popup {
+            transform: scale(1);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #777;
+        }
+
+        .popup-header {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .popup-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #2575fc;
+            margin-bottom: 5px;
+        }
+
+        .popup-subtitle {
+            font-size: 16px;
+            color: #666;
+        }
+
+        .referral-form {
+            margin-top: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #444;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e1e1;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            border-color: #2575fc;
+            outline: none;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            border: none;
+            padding: 15px;
+            width: 100%;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(37, 117, 252, 0.4);
+        }
+
+        .referral-info {
+            background: #f5f9ff;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .info-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #2575fc;
+        }
+
+        .info-item {
+            margin-bottom: 8px;
+            display: flex;
+        }
+
+        .info-label {
+            font-weight: 600;
+            width: 100px;
+        }
+
+        /* Animasi untuk elemen yang muncul */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate {
+            animation: fadeInUp 0.6s ease forwards;
+        }
+
+        .delay-1 {
+            animation-delay: 0.2s;
+            opacity: 0;
+        }
+
+        .delay-2 {
+            animation-delay: 0.4s;
+            opacity: 0;
+        }
+
+        .delay-3 {
+            animation-delay: 0.6s;
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo animate">🚀</div>
+        <h1 class="animate">Selamat Datang!</h1>
+        <p class="animate delay-1">Dapatkan akses eksklusif ke produk dan layanan terbaik kami dengan menggunakan kode referral.</p>
+        
+        <div class="features">
+            <div class="feature animate delay-1">
+                <div class="feature-icon">🎁</div>
+                <div class="feature-text">Bonus Spesial</div>
+            </div>
+            <div class="feature animate delay-2">
+                <div class="feature-icon">⭐</div>
+                <div class="feature-text">Akses Premium</div>
+            </div>
+            <div class="feature animate delay-3">
+                <div class="feature-icon">💎</div>
+                <div class="feature-text">Fitur Eksklusif</div>
+            </div>
+        </div>
+        
+        <button class="cta-button animate delay-3" id="showPopup">Dapatkan Sekarang</button>
+    </div>
+
+    <!-- Overlay dan Popup -->
+    <div class="overlay" id="overlay">
+        <div class="popup">
+            <button class="close-btn" id="closePopup">&times;</button>
+            
+            <div class="popup-header">
+                <h2 class="popup-title">Masukkan Kode Referral</h2>
+                <p class="popup-subtitle">Untuk melanjutkan, masukkan kode referral Anda</p>
+            </div>
+            
+            <div class="referral-info">
+                <div class="info-title">Informasi Referral:</div>
+                <div class="info-item">
+                    <span class="info-label">Nama:</span>
+                    <span id="referralName">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Perusahaan:</span>
+                    <span id="referralCompany">-</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Kode Referral:</span>
+                    <span id="referralCode">-</span>
+                </div>
+            </div>
+            
+            <div class="referral-form">
+                <div class="form-group">
+                    <label for="referralInput">Kode Referral Anda</label>
+                    <input type="text" id="referralInput" placeholder="Masukkan kode referral">
+                </div>
+                <button class="submit-btn" id="submitReferral">Konfirmasi & Lanjutkan</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Ambil parameter URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const name = urlParams.get('name') || 'Tidak tersedia';
+        const company = urlParams.get('company') || 'Tidak tersedia';
+        const code = urlParams.get('code') || 'Tidak tersedia';
+
+        // Elemen DOM
+        const overlay = document.getElementById('overlay');
+        const showPopupBtn = document.getElementById('showPopup');
+        const closePopupBtn = document.getElementById('closePopup');
+        const submitReferralBtn = document.getElementById('submitReferral');
+        const referralInput = document.getElementById('referralInput');
+        
+        // Elemen untuk menampilkan data referral
+        const referralNameElement = document.getElementById('referralName');
+        const referralCompanyElement = document.getElementById('referralCompany');
+        const referralCodeElement = document.getElementById('referralCode');
+
+        // Tampilkan data referral di popup
+        document.addEventListener('DOMContentLoaded', function() {
+            referralNameElement.textContent = name;
+            referralCompanyElement.textContent = company;
+            referralCodeElement.textContent = code;
+            
+            // Tampilkan popup otomatis jika ada data referral
+            if (name !== 'Tidak tersedia' || company !== 'Tidak tersedia' || code !== 'Tidak tersedia') {
+                setTimeout(() => {
+                    overlay.classList.add('active');
+                }, 1000);
+            }
+        });
+
+        // Event listener untuk tombol tampilkan popup
+        showPopupBtn.addEventListener('click', function() {
+            overlay.classList.add('active');
+        });
+
+        // Event listener untuk tombol tutup popup
+        closePopupBtn.addEventListener('click', function() {
+            overlay.classList.remove('active');
+        });
+
+        // Event listener untuk klik di luar popup
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) {
+                overlay.classList.remove('active');
+            }
+        });
+
+        // Event listener untuk submit referral
+        submitReferralBtn.addEventListener('click', function() {
+            const userReferralCode = referralInput.value.trim();
+            
+            if (userReferralCode === '') {
+                alert('Silakan masukkan kode referral Anda');
+                return;
+            }
+            
+            // Simulasi proses verifikasi
+            alert(`Kode referral "${userReferralCode}" berhasil diverifikasi!`);
+            
+            // Redirect atau lakukan aksi selanjutnya
+            // window.location.href = 'https://example.com/success';
+            
+            // Untuk contoh, tutup popup
+            overlay.classList.remove('active');
+        });
+
+        // Animasi untuk elemen dengan class animate
+        const animateElements = document.querySelectorAll('.animate');
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = 1;
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+        
+        animateElements.forEach(element => {
+            observer.observe(element);
+        });
+    </script>
+</body>
+</html>
