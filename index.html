@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Landing Page Referral</title>
+    <title>Klaim Voucher Belanja</title>
     <style>
         * {
             margin: 0;
@@ -268,26 +268,29 @@
 </head>
 <body>
     <div class="container">
-        <div class="logo animate">🚀</div>
-        <h1 class="animate">Selamat Datang!</h1>
-        <p class="animate delay-1">Dapatkan akses eksklusif ke produk dan layanan terbaik kami dengan menggunakan kode referral.</p>
+        <div class="logo animate">🎉</div>
+        <h1 class="animate">Selamat!</h1>
+        <p class="animate delay-1">
+            Anda berhak mendapatkan <strong>Voucher Belanja senilai Rp 500.000</strong> dari kami!
+            Segera klaim voucher Anda sebelum masa berlaku habis.
+        </p>
         
         <div class="features">
             <div class="feature animate delay-1">
-                <div class="feature-icon">🎁</div>
-                <div class="feature-text">Bonus Spesial</div>
+                <div class="feature-icon">🛍️</div>
+                <div class="feature-text">Voucher Rp 500.000</div>
             </div>
             <div class="feature animate delay-2">
-                <div class="feature-icon">⭐</div>
-                <div class="feature-text">Akses Premium</div>
+                <div class="feature-icon">⚡</div>
+                <div class="feature-text">Klaim Cepat</div>
             </div>
             <div class="feature animate delay-3">
-                <div class="feature-icon">💎</div>
-                <div class="feature-text">Fitur Eksklusif</div>
+                <div class="feature-icon">🎁</div>
+                <div class="feature-text">Bonus Tambahan</div>
             </div>
         </div>
         
-        <button class="cta-button animate delay-3" id="showPopup">Dapatkan Sekarang</button>
+        <button class="cta-button animate delay-3" id="showPopup">Klaim Sekarang</button>
     </div>
 
     <!-- Overlay dan Popup -->
@@ -296,8 +299,8 @@
             <button class="close-btn" id="closePopup">&times;</button>
             
             <div class="popup-header">
-                <h2 class="popup-title">Masukkan Kode Referral</h2>
-                <p class="popup-subtitle">Untuk melanjutkan, masukkan kode referral Anda</p>
+                <h2 class="popup-title">Klaim Voucher Anda</h2>
+                <p class="popup-subtitle">Masukkan kode referral untuk memverifikasi klaim voucher belanja Anda</p>
             </div>
             
             <div class="referral-info">
@@ -315,96 +318,52 @@
             <div class="referral-form">
                 <div class="form-group">
                     <label for="referralInput">Kode Referral Anda</label>
-                    <input type="text" id="referralInput" placeholder="Masukkan kode referral">
+                    <input type="text" id="referralInput" placeholder="Masukkan kode referral di sini">
                 </div>
-                <button class="submit-btn" id="submitReferral">Konfirmasi & Lanjutkan</button>
+                <button class="submit-btn" id="submitReferral">Verifikasi & Klaim</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Ambil parameter URL
         const urlParams = new URLSearchParams(window.location.search);
         const name = urlParams.get('name') || 'Tidak tersedia';
         const company = urlParams.get('company') || 'Tidak tersedia';
         const code = urlParams.get('code') || 'Tidak tersedia';
 
-        // Elemen DOM
         const overlay = document.getElementById('overlay');
         const showPopupBtn = document.getElementById('showPopup');
         const closePopupBtn = document.getElementById('closePopup');
         const submitReferralBtn = document.getElementById('submitReferral');
         const referralInput = document.getElementById('referralInput');
         
-        // Elemen untuk menampilkan data referral
         const referralNameElement = document.getElementById('referralName');
         const referralCompanyElement = document.getElementById('referralCompany');
-        const referralCodeElement = document.getElementById('referralCode');
 
-        // Tampilkan data referral di popup
         document.addEventListener('DOMContentLoaded', function() {
             referralNameElement.textContent = name;
             referralCompanyElement.textContent = company;
-            referralCodeElement.textContent = code;
-            
-            // Tampilkan popup otomatis jika ada data referral
-            if (name !== 'Tidak tersedia' || company !== 'Tidak tersedia' || code !== 'Tidak tersedia') {
+
+            if (name !== 'Tidak tersedia' || company !== 'Tidak tersedia') {
                 setTimeout(() => {
                     overlay.classList.add('active');
                 }, 1000);
             }
         });
 
-        // Event listener untuk tombol tampilkan popup
-        showPopupBtn.addEventListener('click', function() {
-            overlay.classList.add('active');
-        });
+        showPopupBtn.addEventListener('click', () => overlay.classList.add('active'));
+        closePopupBtn.addEventListener('click', () => overlay.classList.remove('active'));
+        overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('active'); });
 
-        // Event listener untuk tombol tutup popup
-        closePopupBtn.addEventListener('click', function() {
-            overlay.classList.remove('active');
-        });
-
-        // Event listener untuk klik di luar popup
-        overlay.addEventListener('click', function(e) {
-            if (e.target === overlay) {
-                overlay.classList.remove('active');
-            }
-        });
-
-        // Event listener untuk submit referral
         submitReferralBtn.addEventListener('click', function() {
             const userReferralCode = referralInput.value.trim();
-            
             if (userReferralCode === '') {
                 alert('Silakan masukkan kode referral Anda');
                 return;
             }
-            
-            // Simulasi proses verifikasi
-            alert(`Kode referral "${userReferralCode}" berhasil diverifikasi!`);
-            
-            // Redirect atau lakukan aksi selanjutnya
-            // window.location.href = 'https://example.com/success';
-            
-            // Untuk contoh, tutup popup
-            overlay.classList.remove('active');
-        });
 
-        // Animasi untuk elemen dengan class animate
-        const animateElements = document.querySelectorAll('.animate');
-        
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = 1;
-                    entry.target.style.transform = 'translateY(0)';
-                }
-            });
-        }, { threshold: 0.1 });
-        
-        animateElements.forEach(element => {
-            observer.observe(element);
+            alert(`Kode referral "${userReferralCode}" berhasil diverifikasi!\nVoucher belanja Rp 500.000 telah diklaim.`);
+            overlay.classList.remove('active');
         });
     </script>
 </body>
