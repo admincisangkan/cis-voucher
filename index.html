@@ -1,370 +1,394 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Klaim Voucher Belanja</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Klaim Voucher Belanja</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
 
-        body {
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-            color: #fff;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
+    body {
+      background: #000; /* Background hitam sampai klaim selesai */
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow: hidden;
+    }
 
-        .container {
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-        }
+    .container {
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      opacity: 0.1; /* Tidak fokus sebelum klaim */
+      transition: opacity 0.3s ease;
+    }
 
-        .logo {
-            width: 80px;
-            height: 80px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            font-size: 36px;
-        }
+    .container.active {
+      opacity: 1;
+    }
 
-        h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
-            font-weight: 700;
-        }
+    .logo {
+      width: 80px;
+      height: 80px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 36px;
+    }
 
-        p {
-            font-size: 16px;
-            margin-bottom: 30px;
-            opacity: 0.9;
-            line-height: 1.5;
-        }
+    h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
 
-        .cta-button {
-            background: #FFD700;
-            color: #333;
-            border: none;
-            padding: 15px 30px;
-            font-size: 18px;
-            font-weight: 600;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
+    p {
+      font-size: 16px;
+      margin-bottom: 30px;
+      opacity: 0.9;
+      line-height: 1.5;
+    }
 
-        .cta-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
-        }
+    .cta-button {
+      background: #ffd700;
+      color: #333;
+      border: none;
+      padding: 15px 30px;
+      font-size: 18px;
+      font-weight: 600;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
 
-        .features {
-            display: flex;
-            justify-content: space-around;
-            margin: 40px 0;
-            width: 100%;
-        }
+    .cta-button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    }
 
-        .feature {
-            text-align: center;
-            flex: 1;
-            padding: 0 10px;
-        }
+    .features {
+      display: flex;
+      justify-content: space-around;
+      margin: 40px 0;
+      width: 100%;
+    }
 
-        .feature-icon {
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
+    .feature {
+      text-align: center;
+      flex: 1;
+      padding: 0 10px;
+    }
 
-        .feature-text {
-            font-size: 14px;
-        }
+    .feature-icon {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
 
-        /* Overlay untuk popup */
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
+    .feature-text {
+      font-size: 14px;
+    }
 
-        .overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
 
-        /* Popup container */
-        .popup {
-            background: white;
-            width: 90%;
-            max-width: 350px;
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            transform: scale(0.8);
-            transition: all 0.4s ease;
-            color: #333;
-            position: relative;
-        }
+    .overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
 
-        .overlay.active .popup {
-            transform: scale(1);
-        }
+    .popup {
+      background: white;
+      width: 90%;
+      max-width: 350px;
+      border-radius: 20px;
+      padding: 25px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      transform: scale(0.8);
+      transition: all 0.4s ease;
+      color: #333;
+      position: relative;
+    }
 
-        .close-btn {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: #777;
-        }
+    .overlay.active .popup {
+      transform: scale(1);
+    }
 
-        .popup-header {
-            margin-bottom: 20px;
-            text-align: center;
-        }
+    .close-btn {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: not-allowed;
+      color: #ccc;
+    }
 
-        .popup-title {
-            font-size: 22px;
-            font-weight: 700;
-            color: #2575fc;
-            margin-bottom: 5px;
-        }
+    .close-btn.enabled {
+      color: #777;
+      cursor: pointer;
+    }
 
-        .popup-subtitle {
-            font-size: 16px;
-            color: #666;
-        }
+    .popup-header {
+      margin-bottom: 20px;
+      text-align: center;
+    }
 
-        .referral-form {
-            margin-top: 20px;
-        }
+    .popup-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #2575fc;
+      margin-bottom: 5px;
+    }
 
-        .form-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
+    .popup-subtitle {
+      font-size: 16px;
+      color: #666;
+    }
 
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #444;
-        }
+    .referral-form {
+      margin-top: 20px;
+    }
 
-        input {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #e1e1e1;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
+    .form-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
 
-        input:focus {
-            border-color: #2575fc;
-            outline: none;
-        }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #444;
+    }
 
-        .submit-btn {
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-            color: white;
-            border: none;
-            padding: 15px;
-            width: 100%;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
+    input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e1e1e1;
+      border-radius: 10px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
 
-        .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(37, 117, 252, 0.4);
-        }
+    input:focus {
+      border-color: #2575fc;
+      outline: none;
+    }
 
-        .referral-info {
-            background: #f5f9ff;
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 20px;
-            text-align: left;
-        }
+    .submit-btn {
+      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+      color: white;
+      border: none;
+      padding: 15px;
+      width: 100%;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
 
-        .info-title {
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: #2575fc;
-        }
+    .submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(37, 117, 252, 0.4);
+    }
 
-        .info-item {
-            margin-bottom: 8px;
-            display: flex;
-        }
+    .referral-info {
+      background: #f5f9ff;
+      border-radius: 10px;
+      padding: 15px;
+      margin-top: 20px;
+      text-align: left;
+    }
 
-        .info-label {
-            font-weight: 600;
-            width: 100px;
-        }
+    .info-title {
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #2575fc;
+    }
 
-        /* Animasi untuk elemen yang muncul */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+    .info-item {
+      margin-bottom: 8px;
+      display: flex;
+    }
 
-        .animate {
-            animation: fadeInUp 0.6s ease forwards;
-        }
+    .info-label {
+      font-weight: 600;
+      width: 100px;
+    }
 
-        .delay-1 {
-            animation-delay: 0.2s;
-            opacity: 0;
-        }
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
 
-        .delay-2 {
-            animation-delay: 0.4s;
-            opacity: 0;
-        }
+    .animate {
+      animation: fadeInUp 0.6s ease forwards;
+    }
 
-        .delay-3 {
-            animation-delay: 0.6s;
-            opacity: 0;
-        }
-    </style>
+    .delay-1 {
+      animation-delay: 0.2s;
+      opacity: 0;
+    }
+
+    .delay-2 {
+      animation-delay: 0.4s;
+      opacity: 0;
+    }
+
+    .delay-3 {
+      animation-delay: 0.6s;
+      opacity: 0;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="logo animate">🎉</div>
-        <h1 class="animate">Selamat!</h1>
-        <p class="animate delay-1">
-            Anda berhak mendapatkan <strong>Voucher Belanja senilai Rp 500.000</strong> dari kami!
-            Segera klaim voucher Anda sebelum masa berlaku habis.
+  <div class="container" id="mainContent">
+    <div class="logo animate">🎉</div>
+    <h1 class="animate">Selamat!</h1>
+    <p class="animate delay-1">
+      Anda berhak mendapatkan <strong>Voucher Belanja senilai Rp 500.000</strong> dari kami!
+      Segera klaim voucher Anda sebelum masa berlaku habis.
+    </p>
+
+    <div class="features">
+      <div class="feature animate delay-1">
+        <div class="feature-icon">🛍️</div>
+        <div class="feature-text">Voucher Rp 500.000</div>
+      </div>
+      <div class="feature animate delay-2">
+        <div class="feature-icon">⚡</div>
+        <div class="feature-text">Klaim Cepat</div>
+      </div>
+      <div class="feature animate delay-3">
+        <div class="feature-icon">🎁</div>
+        <div class="feature-text">Bonus Tambahan</div>
+      </div>
+    </div>
+
+    <button class="cta-button animate delay-3" id="showPopup">Klaim Sekarang</button>
+  </div>
+
+  <div class="overlay" id="overlay">
+    <div class="popup">
+      <button class="close-btn" id="closePopup">×</button>
+
+      <div class="popup-header">
+        <h2 class="popup-title">Klaim Voucher Anda</h2>
+        <p class="popup-subtitle">
+          Masukkan kode referral untuk memverifikasi klaim voucher belanja Anda
         </p>
-        
-        <div class="features">
-            <div class="feature animate delay-1">
-                <div class="feature-icon">🛍️</div>
-                <div class="feature-text">Voucher Rp 500.000</div>
-            </div>
-            <div class="feature animate delay-2">
-                <div class="feature-icon">⚡</div>
-                <div class="feature-text">Klaim Cepat</div>
-            </div>
-            <div class="feature animate delay-3">
-                <div class="feature-icon">🎁</div>
-                <div class="feature-text">Bonus Tambahan</div>
-            </div>
+      </div>
+
+      <div class="referral-info">
+        <div class="info-title">Informasi Referral:</div>
+        <div class="info-item">
+          <span class="info-label">Nama:</span>
+          <span id="referralName">-</span>
         </div>
-        
-        <button class="cta-button animate delay-3" id="showPopup">Klaim Sekarang</button>
-    </div>
-
-    <!-- Overlay dan Popup -->
-    <div class="overlay" id="overlay">
-        <div class="popup">
-            <button class="close-btn" id="closePopup">&times;</button>
-            
-            <div class="popup-header">
-                <h2 class="popup-title">Klaim Voucher Anda</h2>
-                <p class="popup-subtitle">Masukkan kode referral untuk memverifikasi klaim voucher belanja Anda</p>
-            </div>
-            
-            <div class="referral-info">
-                <div class="info-title">Informasi Referral:</div>
-                <div class="info-item">
-                    <span class="info-label">Nama:</span>
-                    <span id="referralName">-</span>
-                </div>
-                <div class="info-item">
-                    <span class="info-label">Perusahaan:</span>
-                    <span id="referralCompany">-</span>
-                </div>
-            </div>
-            
-            <div class="referral-form">
-                <div class="form-group">
-                    <label for="referralInput">Kode Referral Anda</label>
-                    <input type="text" id="referralInput" placeholder="Masukkan kode referral di sini">
-                </div>
-                <button class="submit-btn" id="submitReferral">Verifikasi & Klaim</button>
-            </div>
+        <div class="info-item">
+          <span class="info-label">Perusahaan:</span>
+          <span id="referralCompany">-</span>
         </div>
+      </div>
+
+      <div class="referral-form">
+        <div class="form-group">
+          <label for="referralInput">Kode Referral Anda</label>
+          <input type="text" id="referralInput" placeholder="Masukkan kode referral di sini" />
+        </div>
+        <button class="submit-btn" id="submitReferral">Verifikasi & Klaim</button>
+      </div>
     </div>
+  </div>
 
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const name = urlParams.get('name') || 'Tidak tersedia';
-        const company = urlParams.get('company') || 'Tidak tersedia';
-        const code = urlParams.get('code') || 'Tidak tersedia';
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const name = urlParams.get("name") || "Tidak tersedia";
+    const company = urlParams.get("company") || "Tidak tersedia";
 
-        const overlay = document.getElementById('overlay');
-        const showPopupBtn = document.getElementById('showPopup');
-        const closePopupBtn = document.getElementById('closePopup');
-        const submitReferralBtn = document.getElementById('submitReferral');
-        const referralInput = document.getElementById('referralInput');
-        
-        const referralNameElement = document.getElementById('referralName');
-        const referralCompanyElement = document.getElementById('referralCompany');
+    const overlay = document.getElementById("overlay");
+    const closePopupBtn = document.getElementById("closePopup");
+    const submitReferralBtn = document.getElementById("submitReferral");
+    const referralInput = document.getElementById("referralInput");
+    const referralNameElement = document.getElementById("referralName");
+    const referralCompanyElement = document.getElementById("referralCompany");
+    const mainContent = document.getElementById("mainContent");
 
-        document.addEventListener('DOMContentLoaded', function() {
-            referralNameElement.textContent = name;
-            referralCompanyElement.textContent = company;
+    let klaimBerhasil = false;
 
-            if (name !== 'Tidak tersedia' || company !== 'Tidak tersedia') {
-                setTimeout(() => {
-                    overlay.classList.add('active');
-                }, 1000);
-            }
-        });
+    document.addEventListener("DOMContentLoaded", function () {
+      referralNameElement.textContent = name;
+      referralCompanyElement.textContent = company;
+      overlay.classList.add("active"); // Popup langsung muncul
+    });
 
-        showPopupBtn.addEventListener('click', () => overlay.classList.add('active'));
-        closePopupBtn.addEventListener('click', () => overlay.classList.remove('active'));
-        overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('active'); });
+    closePopupBtn.addEventListener("click", () => {
+      if (klaimBerhasil) {
+        overlay.classList.remove("active");
+      } else {
+        alert("Klaim voucher terlebih dahulu sebelum menutup popup.");
+      }
+    });
 
-        submitReferralBtn.addEventListener('click', function() {
-            const userReferralCode = referralInput.value.trim();
-            if (userReferralCode === '') {
-                alert('Silakan masukkan kode referral Anda');
-                return;
-            }
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay && klaimBerhasil) {
+        overlay.classList.remove("active");
+      }
+    });
 
-            alert(`Kode referral "${userReferralCode}" berhasil diverifikasi!\nVoucher belanja Rp 500.000 telah diklaim.`);
-            overlay.classList.remove('active');
-        });
-    </script>
+    submitReferralBtn.addEventListener("click", function () {
+      const userReferralCode = referralInput.value.trim();
+      if (userReferralCode === "") {
+        alert("Silakan masukkan kode referral Anda.");
+        return;
+      }
+
+      alert(
+        `Kode referral "${userReferralCode}" berhasil diverifikasi!\nVoucher belanja Rp 500.000 telah diklaim.`
+      );
+
+      klaimBerhasil = true;
+      closePopupBtn.classList.add("enabled");
+      closePopupBtn.style.cursor = "pointer";
+      document.body.style.background =
+        "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)";
+      mainContent.classList.add("active");
+      overlay.classList.remove("active");
+    });
+  </script>
 </body>
 </html>
