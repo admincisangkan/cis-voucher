@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voucher Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background: #f5f5f5;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .btn {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            background: #45a049;
+        }
+
+        /* TEMPLATE VOUCHER */
+        .voucher-template {
+            width: 600px;
+            height: 400px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 30px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            margin: 0 auto;
+        }
+
+        .voucher-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .voucher-title {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .voucher-subtitle {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        .voucher-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 200px;
+        }
+
+        .voucher-info {
+            flex: 1;
+            padding-right: 20px;
+        }
+
+        .voucher-qr {
+            flex-shrink: 0;
+        }
+
+        .info-item {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
+
+        .info-label {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .voucher-footer {
+            position: absolute;
+            bottom: 20px;
+            left: 30px;
+            right: 30px;
+            text-align: center;
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 120px;
+            opacity: 0.05;
+            font-weight: bold;
+            pointer-events: none;
+        }
+    </style>
+    <!-- Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="controls">
+            <button class="btn" onclick="downloadVoucher()">📥 Download Voucher</button>
+            <button class="btn" onclick="autoFillFromURL()">🔄 Auto Fill dari URL</button>
+        </div>
+
+        <!-- TEMPLATE VOUCHER -->
+        <div class="voucher-template" id="voucherTemplate">
+            <div class="watermark">VOUCHER</div>
+            
+            <div class="voucher-header">
+                <div class="voucher-title">Voucher Referral</div>
+                <div class="voucher-subtitle">Diskon Spesial 25%</div>
+            </div>
+
+            <div class="voucher-content">
+                <div class="voucher-info">
+                    <div class="info-item">
+                        <div class="info-label">NAMA CUSTOMER</div>
+                        <div class="info-value" id="voucherName">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">PERUSAHAAN</div>
+                        <div class="info-value" id="voucherCompany">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">KODE REFERRAL</div>
+                        <div class="info-value" id="voucherCode">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">VALID UNTUK</div>
+                        <div class="info-value" id="voucherExpiry">31 Desember 2024</div>
+                    </div>
+                </div>
+                
+                <div class="voucher-qr">
+                    <div id="qrcode"></div>
+                </div>
+            </div>
+
+            <div class="voucher-footer">
+                Presentasikan voucher ini untuk mendapatkan diskon spesial. Berlaku di semua outlet.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data dari Google Sheets (akan diisi via URL parameters)
+        let voucherData = {
+            name: '',
+            company: '',
+            code: '',
+            expiry: '31 Desember 2024'
+        };
+
+        function generateQRCode(link) {
+            const qrcodeElement = document.getElementById('qrcode');
+            qrcodeElement.innerHTML = '';
+
+            QRCode.toCanvas(qrcodeElement, link, {
+                width: 120,
+                margin: 1,
+                color: {
+                    dark: '#000000',
+                    light: '#FFFFFF'
+                }
+            }, function(error) {
+                if (error) {
+                    console.error(error);
+                }
+            });
+        }
+
+        function updateVoucherDisplay() {
+            document.getElementById('voucherName').textContent = voucherData.name;
+            document.getElementById('voucherCompany').textContent = voucherData.company;
+            document.getElementById('voucherCode').textContent = voucherData.code;
+            document.getElementById('voucherExpiry').textContent = voucherData.expiry;
+
+            // Generate QR Code
+            const referralLink = `https://cis-voucher.vercel.app/?name=${encodeURIComponent(voucherData.name)}&company=${encodeURIComponent(voucherData.company)}&code=${voucherData.code}`;
+            generateQRCode(referralLink);
+        }
+
+        function autoFillFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            voucherData = {
+                name: urlParams.get('name') || 'Customer',
+                company: urlParams.get('company') || 'Perusahaan',
+                code: urlParams.get('code') || 'REF000',
+                expiry: '31 Desember 2024'
+            };
+
+            updateVoucherDisplay();
+        }
+
+        function downloadVoucher() {
+            const voucherTemplate = document.getElementById('voucherTemplate');
+
+            html2canvas(voucherTemplate, {
+                scale: 2, // High quality
+                backgroundColor: null,
+                useCORS: true
+            }).then(canvas => {
+                // Create download link
+                const link = document.createElement('a');
+                link.download = `Voucher-${voucherData.code}-${voucherData.name}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+
+        // Auto-fill ketika page load jika ada URL parameters
+        window.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('name') && urlParams.get('company') && urlParams.get('code')) {
+                autoFillFromURL();
+            } else {
+                // Default data untuk preview
+                voucherData = {
+                    name: 'John Doe',
+                    company: 'PT Contoh Indonesia',
+                    code: 'REF12345',
+                    expiry: '31 Desember 2024'
+                };
+                updateVoucherDisplay();
+            }
+        });
+    </script>
+</body>
+</html>
