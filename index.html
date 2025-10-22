@@ -5,10 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Klaim Voucher Belanja</title>
   <style>
-    * {margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;}
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
 
     body {
-      background: #000;
+      background: #000; /* Background hitam sampai klaim selesai */
       color: #fff;
       min-height: 100vh;
       display: flex;
@@ -23,84 +28,191 @@
       width: 100%;
       max-width: 400px;
       text-align: center;
-      opacity: 0.1;
+      opacity: 0.1; /* Tidak fokus sebelum klaim */
       transition: opacity 0.3s ease;
     }
 
-    .container.active { opacity: 1; }
-
-    .logo {
-      width: 80px; height: 80px; background: rgba(255, 255, 255, 0.2);
-      border-radius: 50%; display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 20px; font-size: 36px;
+    .container.active {
+      opacity: 1;
     }
 
-    h1 {font-size: 28px; margin-bottom: 10px; font-weight: 700;}
-    p {font-size: 16px; margin-bottom: 30px; opacity: 0.9; line-height: 1.5;}
+    .logo {
+      width: 80px;
+      height: 80px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 36px;
+    }
+
+    h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    p {
+      font-size: 16px;
+      margin-bottom: 30px;
+      opacity: 0.9;
+      line-height: 1.5;
+    }
 
     .cta-button {
-      background: #ffd700; color: #333; border: none;
-      padding: 15px 30px; font-size: 18px; font-weight: 600;
-      border-radius: 50px; cursor: pointer; transition: all 0.3s ease;
+      background: #ffd700;
+      color: #333;
+      border: none;
+      padding: 15px 30px;
+      font-size: 18px;
+      font-weight: 600;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s ease;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     }
 
     .cta-button:hover {
-      transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
     }
 
-    .features {display: flex; justify-content: space-around; margin: 40px 0; width: 100%;}
-    .feature {text-align: center; flex: 1; padding: 0 10px;}
-    .feature-icon {font-size: 24px; margin-bottom: 10px;}
-    .feature-text {font-size: 14px;}
+    .features {
+      display: flex;
+      justify-content: space-around;
+      margin: 40px 0;
+      width: 100%;
+    }
+
+    .feature {
+      text-align: center;
+      flex: 1;
+      padding: 0 10px;
+    }
+
+    .feature-icon {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+
+    .feature-text {
+      font-size: 14px;
+    }
 
     .overlay {
-      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
       background: rgba(0, 0, 0, 0.9);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
     }
 
-    .overlay.active {opacity: 1; visibility: visible;}
+    .overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
 
     .popup {
-      background: white; width: 90%; max-width: 350px;
-      border-radius: 20px; padding: 25px;
+      background: white;
+      width: 90%;
+      max-width: 350px;
+      border-radius: 20px;
+      padding: 25px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-      transform: scale(0.8); transition: all 0.4s ease;
-      color: #333; position: relative;
+      transform: scale(0.8);
+      transition: all 0.4s ease;
+      color: #333;
+      position: relative;
     }
 
-    .overlay.active .popup {transform: scale(1);}
+    .overlay.active .popup {
+      transform: scale(1);
+    }
 
     .close-btn {
-      position: absolute; top: 15px; right: 15px;
-      background: none; border: none;
-      font-size: 24px; cursor: not-allowed; color: #ccc;
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: not-allowed;
+      color: #ccc;
     }
 
-    .close-btn.enabled {color: #777; cursor: pointer;}
+    .close-btn.enabled {
+      color: #777;
+      cursor: pointer;
+    }
 
-    .popup-header {margin-bottom: 20px; text-align: center;}
-    .popup-title {font-size: 22px; font-weight: 700; color: #2575fc; margin-bottom: 5px;}
-    .popup-subtitle {font-size: 16px; color: #666;}
+    .popup-header {
+      margin-bottom: 20px;
+      text-align: center;
+    }
 
-    .referral-form {margin-top: 20px;}
-    .form-group {margin-bottom: 20px; text-align: left;}
-    label {display: block; margin-bottom: 8px; font-weight: 600; color: #444;}
+    .popup-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #2575fc;
+      margin-bottom: 5px;
+    }
+
+    .popup-subtitle {
+      font-size: 16px;
+      color: #666;
+    }
+
+    .referral-form {
+      margin-top: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #444;
+    }
 
     input {
-      width: 100%; padding: 12px 15px; border: 2px solid #e1e1e1;
-      border-radius: 10px; font-size: 16px; transition: border-color 0.3s;
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e1e1e1;
+      border-radius: 10px;
+      font-size: 16px;
+      transition: border-color 0.3s;
     }
 
-    input:focus {border-color: #2575fc; outline: none;}
+    input:focus {
+      border-color: #2575fc;
+      outline: none;
+    }
 
     .submit-btn {
       background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-      color: white; border: none; padding: 15px; width: 100%;
-      border-radius: 10px; font-size: 16px; font-weight: 600;
-      cursor: pointer; transition: all 0.3s ease;
+      color: white;
+      border: none;
+      padding: 15px;
+      width: 100%;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
     }
 
     .submit-btn:hover {
@@ -109,22 +221,47 @@
     }
 
     .referral-info {
-      background: #f5f9ff; border-radius: 10px; padding: 15px; margin-top: 20px; text-align: left;
+      background: #f5f9ff;
+      border-radius: 10px;
+      padding: 15px;
+      margin-top: 20px;
+      text-align: left;
     }
 
-    .info-title {font-weight: 600; margin-bottom: 10px; color: #2575fc;}
-    .info-item {margin-bottom: 8px; display: flex;}
-    .info-label {font-weight: 600; width: 100px;}
+    .info-title {
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #2575fc;
+    }
+
+    .info-item {
+      margin-bottom: 8px;
+      display: flex;
+    }
+
+    .info-label {
+      font-weight: 600;
+      width: 100px;
+    }
 
     @keyframes fadeInUp {
-      from {opacity: 0; transform: translateY(20px);}
-      to {opacity: 1; transform: translateY(0);}
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
-    .animate {animation: fadeInUp 0.6s ease forwards;}
-    .delay-1 {animation-delay: 0.2s; opacity: 0;}
-    .delay-2 {animation-delay: 0.4s; opacity: 0;}
-    .delay-3 {animation-delay: 0.6s; opacity: 0;}
+    .animate {
+      animation: fadeInUp 0.6s ease forwards;
+    }
+
+    .delay-1 { animation-delay: 0.2s; opacity: 0; }
+    .delay-2 { animation-delay: 0.4s; opacity: 0; }
+    .delay-3 { animation-delay: 0.6s; opacity: 0; }
   </style>
 </head>
 <body>
@@ -191,7 +328,7 @@
     const urlParams = new URLSearchParams(window.location.search);
     const name = urlParams.get("name") || "Tidak tersedia";
     const company = urlParams.get("company") || "Tidak tersedia";
-    const referralFromURL = urlParams.get("ref") || ""; // kode referral di URL
+    const correctReferralCode = urlParams.get("code") || ""; // kode referral asli dari URL
 
     const overlay = document.getElementById("overlay");
     const closePopupBtn = document.getElementById("closePopup");
@@ -201,15 +338,12 @@
     const referralCompanyElement = document.getElementById("referralCompany");
     const mainContent = document.getElementById("mainContent");
 
-    // Simulasi database kode referral yang valid
-    const validReferralCodes = ["ABC123", "PROMO500", "GB2025", "DISKON77"];
-
     let klaimBerhasil = false;
 
     document.addEventListener("DOMContentLoaded", function () {
       referralNameElement.textContent = name;
       referralCompanyElement.textContent = company;
-      overlay.classList.add("active");
+      overlay.classList.add("active"); // Popup langsung muncul
     });
 
     closePopupBtn.addEventListener("click", () => {
@@ -217,6 +351,12 @@
         overlay.classList.remove("active");
       } else {
         alert("Klaim voucher terlebih dahulu sebelum menutup popup.");
+      }
+    });
+
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay && klaimBerhasil) {
+        overlay.classList.remove("active");
       }
     });
 
@@ -229,21 +369,21 @@
       }
 
       // Validasi kode referral
-      if (
-        !validReferralCodes.includes(userReferralCode) &&
-        userReferralCode !== referralFromURL
-      ) {
-        alert("⚠️ Kode referral tidak sesuai atau tidak terdaftar. Silakan periksa kembali.");
+      if (userReferralCode !== correctReferralCode) {
+        alert("❌ Kode referral tidak sesuai. Silakan periksa kembali.");
+        referralInput.style.borderColor = "red";
+        referralInput.focus();
         return;
       }
 
-      // Jika valid
+      // Jika cocok → klaim berhasil
       alert(
         `✅ Kode referral "${userReferralCode}" berhasil diverifikasi!\nVoucher belanja Rp 500.000 telah diklaim.`
       );
 
       klaimBerhasil = true;
       closePopupBtn.classList.add("enabled");
+      closePopupBtn.style.cursor = "pointer";
       document.body.style.background =
         "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)";
       mainContent.classList.add("active");
