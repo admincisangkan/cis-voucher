@@ -319,70 +319,106 @@
   </div>
 
   <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const name = urlParams.get("name") || "Tidak tersedia";
-    const company = urlParams.get("company") || "Tidak tersedia";
-    const correctReferralCode = urlParams.get("code") || ""; // kode referral asli dari URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const name = urlParams.get("name") || "Tidak tersedia";
+  const company = urlParams.get("company") || "Tidak tersedia";
+  const correctReferralCode = urlParams.get("code") || "";
 
-    const overlay = document.getElementById("overlay");
-    const closePopupBtn = document.getElementById("closePopup");
-    const submitReferralBtn = document.getElementById("submitReferral");
-    const referralInput = document.getElementById("referralInput");
-    const referralNameElement = document.getElementById("referralName");
-    const referralCompanyElement = document.getElementById("referralCompany");
-    const mainContent = document.getElementById("mainContent");
+  const overlay = document.getElementById("overlay");
+  const closePopupBtn = document.getElementById("closePopup");
+  const submitReferralBtn = document.getElementById("submitReferral");
+  const referralInput = document.getElementById("referralInput");
+  const referralNameElement = document.getElementById("referralName");
+  const referralCompanyElement = document.getElementById("referralCompany");
+  const mainContent = document.getElementById("mainContent");
 
-    let klaimBerhasil = false;
+  // URL Web App Google Script
+  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby4odcKLKxwiM-V00VPBePsFnB4ne5I8G7awLpxs26u3ExSd9YFEjeg8ofb3NgzvHvcLA/exec";
 
-    document.addEventListener("DOMContentLoaded", function () {
-      referralNameElement.textContent = name;
-      referralCompanyElement.textContent = company;
-      overlay.classList.add("active"); // Popup langsung muncul
-    });
+  let klaimBerhasil = false;
 
-    closePopupBtn.addEventListener("click", () => {
-      if (klaimBerhasil) {
-        overlay.classList.remove("active");
-      } else {
-        alert("Klaim voucher terlebih dahulu sebelum menutup popup.");
-      }
-    });
+  document.addEventListener("DOMContentLoaded", function () {
+    referralNameElement.textContent = name;
+    referralCompanyElement.textContent = company;
+    overlay.classList.add("active");
 
-    overlay.addEventListener("click", (e) => {
-      if (e.target === overlay && klaimBerhasil) {
-        overlay.classList.remove("active");
-      }
-    });
-
-    submitReferralBtn.addEventListener("click", function () {
-      const userReferralCode = referralInput.value.trim();
-
-      if (userReferralCode === "") {
-        alert("Silakan masukkan kode referral Anda.");
-        return;
-      }
-
-      // Validasi kode referral
-      if (userReferralCode !== correctReferralCode) {
-        alert("❌ Kode referral tidak sesuai. Silakan periksa kembali.");
-        referralInput.style.borderColor = "red";
-        referralInput.focus();
-        return;
-      }
-
-      // Jika cocok → klaim berhasil
-      alert(
-        `✅ Kode referral "${userReferralCode}" berhasil diverifikasi!\nVoucher belanja Rp 500.000 telah diklaim.`
-      );
-
-      klaimBerhasil = true;
-      closePopupBtn.classList.add("enabled");
-      closePopupBtn.style.cursor = "pointer";
+    // Jika kode sudah digunakan (disimpan di localStorage)
+    if (localStorage.getItem(correctReferralCode) === "used") {
+      referralInput.disabled = true;
+      submitReferralBtn.disabled = true;
+      submitReferralBtn.style.background = "#888";
+      alert("⚠️ Kode referral ini sudah digunakan dan tidak dapat diklaim lagi.");
+      mainContent.classList.add("active");
       document.body.style.background =
         "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)";
-      mainContent.classList.add("active");
       overlay.classList.remove("active");
-    });
-  </script>
+    }
+  });
+
+  closePopupBtn.addEventListener("click", () => {
+    if (klaimBerhasil) {
+      overlay.classList.remove("active");
+    } else {
+      alert("Klaim voucher terlebih dahulu sebelum menutup popup.");
+    }
+  });
+
+  overlay.addEventListener("click", (e) => {
+    if (e.target === overlay && klaimBerhasil) {
+      overlay.classList.remove("active");
+    }
+  });
+
+  submitReferralBtn.addEventListener("click", function () {
+    const userReferralCode = referralInput.value.trim();
+
+    if (userReferralCode === "") {
+      alert("Silakan masukkan kode referral Anda.");
+      return;
+    }
+
+    // Jika sudah digunakan sebelumnya
+    if (localStorage.getItem(userReferralCode) === "used") {
+      alert("⚠️ Kode referral ini sudah digunakan sebelumnya.");
+      return;
+    }
+
+    // Validasi kode referral
+    if (userReferralCode !== correctReferralCode) {
+      alert("❌ Kode referral tidak sesuai. Silakan periksa kembali.");
+      referralInput.style.borderColor = "red";
+      referralInput.focus();
+      return;
+    }
+
+    // Jika cocok → klaim berhasil
+    alert(
+      `✅ Kode referral "${userReferralCode}" berhasil diverifikasi!\nVoucher belanja Rp 500.000 telah diklaim.`
+    );
+
+    klaimBerhasil = true;
+    closePopupBtn.classList.add("enabled");
+    closePopupBtn.style.cursor = "pointer";
+    document.body.style.background =
+      "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)";
+    mainContent.classList.add("active");
+    overlay.classList.remove("active");
+
+    // Tandai di localStorage agar tidak bisa dipakai lagi
+    localStorage.setItem(userReferralCode, "used");
+
+    // Kirim status ke Google Sheet
+    fetch(GOOGLE_SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify({ code: userReferralCode }),
+      headers: { "Content-Type": "application/json" },
+    })
+      .then((res) => res.text())
+      .then((result) => {
+        console.log("Spreadsheet response:", result);
+      })
+      .catch((err) => console.error("Error updating sheet:", err));
+  });
+</script>
 </body>
 </html>
