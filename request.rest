@@ -1,0 +1,5 @@
+####
+curl -L -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"code":"K040S"}' \
+  "https://script.google.com/macros/s/AKfycbxfS-P5U-FkJYUmLunpo6sH57_PLCgSQiNMc8x_IVPYcFnTOXWK9vXY5ExblsOISJ8GtQ/exec"
