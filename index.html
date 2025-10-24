@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Klaim Voucher Belanja</title>
   <style>
-    /* CSS tetap sama seperti sebelumnya */
+    /* CSS styles tetap sama seperti sebelumnya */
     * {
       margin: 0;
       padding: 0;
@@ -350,9 +350,9 @@
     </div>
   </div>
 
-<script>
-    // URL Web App Google Script
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxYPFv2X-T01iG7AZqL0yyz2G3XkY91FNMd3s-MJ3U6XBZOtTcb2llKc4ybcQnw2veMHQ/exec";
+  <script>
+    // URL Web App Google Script - GANTI DENGAN URL DEPLOYMENT BARU ANDA
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwdOBo0TGHpcklYSjEtXM13NHQqQbJXiTx2YMTK0u5t-4eJXs_W_4pVkZv_TSgcrW4QKg/exec";
 
     // Ambil parameter dari URL
     const urlParams = new URLSearchParams(window.location.search);
@@ -381,127 +381,49 @@
       }
     }
 
-    // Fungsi untuk mengirim data ke Google Apps Script dengan error handling
-    async function sendToGoogleSheet(code) {
-      try {
-        // Tampilkan loading
-        loadingElement.style.display = 'block';
-        submitReferralBtn.disabled = true;
-        submitReferralBtn.textContent = "Memproses...";
-
-        // Persiapkan data
-        const payload = {
-          code: code.toUpperCase()
-        };
-
-        console.log('Mengirim data:', payload);
-
-        // Gunakan approach yang berbeda untuk handle Google Apps Script redirect
-        const response = await fetch(GOOGLE_SCRIPT_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-          redirect: 'manual' // Handle redirect manually
-        });
-
-        // Handle redirect
-        if (response.type === 'opaqueredirect') {
-          // Jika redirect, coba akses langsung dengan method berbeda
-          return await tryAlternativeMethod(code);
-        }
-
-        // Jika tidak redirect, proses normal
-        const responseText = await response.text();
-        console.log('Raw Response:', responseText);
-
-        // Parse response
-        let result;
-        try {
-          result = JSON.parse(responseText);
-        } catch (parseError) {
-          console.error('Parse error:', parseError);
-          // Coba extract JSON dari HTML jika ada
-          const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            result = JSON.parse(jsonMatch[0]);
-          } else {
-            throw new Error('Format response tidak valid: ' + responseText.substring(0, 100));
-          }
-        }
-
-        return result;
-
-      } catch (error) {
-        console.error('Error in sendToGoogleSheet:', error);
-        throw error;
-      } finally {
-        // Sembunyikan loading
-        loadingElement.style.display = 'none';
-        submitReferralBtn.disabled = false;
-        submitReferralBtn.textContent = "Verifikasi & Klaim";
-      }
-    }
-
-    // Alternative method jika fetch biasa gagal
-    async function tryAlternativeMethod(code) {
-      try {
-        // Coba dengan XMLHttpRequest
-        return new Promise((resolve, reject) => {
-          const xhr = new XMLHttpRequest();
-          xhr.open('POST', GOOGLE_SCRIPT_URL, true);
-          xhr.setRequestHeader('Content-Type', 'application/json');
-          
-          xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4) {
-              if (xhr.status === 200) {
-                try {
-                  const result = JSON.parse(xhr.responseText);
-                  resolve(result);
-                } catch (e) {
-                  reject(new Error('Failed to parse response: ' + e.message));
-                }
-              } else {
-                reject(new Error('Request failed with status: ' + xhr.status));
+    // Fungsi untuk mengirim data menggunakan XMLHttpRequest
+    function sendToGoogleSheet(code) {
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        const payload = JSON.stringify({ code: code.toUpperCase() });
+        
+        xhr.open('POST', GOOGLE_SCRIPT_URL, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        
+        xhr.onreadystatechange = function() {
+          if (xhr.readyState === 4) {
+            console.log('XHR Status:', xhr.status, 'Response:', xhr.responseText);
+            
+            if (xhr.status === 200) {
+              try {
+                const result = JSON.parse(xhr.responseText);
+                resolve(result);
+              } catch (e) {
+                reject(new Error('Gagal parsing response: ' + e.message));
               }
+            } else {
+              reject(new Error('Request gagal dengan status: ' + xhr.status));
             }
-          };
-          
-          xhr.onerror = function() {
-            reject(new Error('Network error occurred'));
-          };
-          
-          xhr.send(JSON.stringify({ code: code.toUpperCase() }));
-        });
-      } catch (error) {
-        throw error;
-      }
-    }
-
-    // Test koneksi ke Google Apps Script
-    async function testConnection() {
-      try {
-        const response = await fetch(GOOGLE_SCRIPT_URL + '?test=' + Date.now());
-        const text = await response.text();
-        console.log('Connection test:', text);
-        return true;
-      } catch (error) {
-        console.error('Connection test failed:', error);
-        return false;
-      }
+          }
+        };
+        
+        xhr.onerror = function() {
+          reject(new Error('Terjadi error jaringan'));
+        };
+        
+        xhr.ontimeout = function() {
+          reject(new Error('Request timeout'));
+        };
+        
+        xhr.timeout = 30000; // 30 detik timeout
+        xhr.send(payload);
+      });
     }
 
     // Inisialisasi saat DOM siap
-    document.addEventListener("DOMContentLoaded", async function () {
+    document.addEventListener("DOMContentLoaded", function () {
       referralNameElement.textContent = name;
       referralCompanyElement.textContent = company;
-      
-      // Test koneksi terlebih dahulu
-      const isConnected = await testConnection();
-      if (!isConnected) {
-        console.warn('Koneksi ke server mungkin bermasalah');
-      }
       
       // Tampilkan popup secara otomatis
       setTimeout(() => {
@@ -509,7 +431,7 @@
       }, 500);
 
       // Cek jika kode sudah digunakan sebelumnya
-      if (localStorage.getItem(correctReferralCode.toUpperCase()) === "used") {
+      if (correctReferralCode && localStorage.getItem(correctReferralCode.toUpperCase()) === "used") {
         handleAlreadyClaimed();
       }
     });
@@ -521,7 +443,9 @@
       showMessage("Kode referral ini sudah digunakan dan tidak dapat diklaim lagi.", true);
       mainContent.classList.add("active");
       document.body.style.background = "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)";
-      overlay.classList.remove("active");
+      setTimeout(() => {
+        overlay.classList.remove("active");
+      }, 1000);
     }
 
     // Event listener untuk tombol close
@@ -561,6 +485,11 @@
       referralInput.style.borderColor = "#e1e1e1";
 
       try {
+        // Tampilkan loading
+        loadingElement.style.display = 'block';
+        submitReferralBtn.disabled = true;
+        submitReferralBtn.textContent = "Memproses...";
+
         // Kirim data ke Google Sheets
         const result = await sendToGoogleSheet(userReferralCode);
 
@@ -603,7 +532,12 @@
 
       } catch (error) {
         console.error('Error:', error);
-        showMessage("Terjadi kesalahan saat memproses klaim. Error: " + error.message, true);
+        showMessage("Terjadi kesalahan jaringan. Silakan coba lagi atau hubungi administrator. Error: " + error.message, true);
+      } finally {
+        // Sembunyikan loading
+        loadingElement.style.display = 'none';
+        submitReferralBtn.disabled = false;
+        submitReferralBtn.textContent = "Verifikasi & Klaim";
       }
     });
 
@@ -618,6 +552,6 @@
     referralInput.addEventListener('input', function() {
       this.value = this.value.toUpperCase();
     });
-</script>
+  </script>
 </body>
 </html>
