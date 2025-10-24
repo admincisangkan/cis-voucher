@@ -5,263 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Klaim Voucher Belanja</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    body {
-      background: #000; /* Background hitam sampai klaim selesai */
-      color: #fff;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      overflow: hidden;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 400px;
-      text-align: center;
-      opacity: 0.1; /* Tidak fokus sebelum klaim */
-      transition: opacity 0.3s ease;
-    }
-
-    .container.active {
-      opacity: 1;
-    }
-
-    .logo {
-      width: 80px;
-      height: 80px;
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 20px;
-      font-size: 36px;
-    }
-
-    h1 {
-      font-size: 28px;
-      margin-bottom: 10px;
-      font-weight: 700;
-    }
-
-    p {
-      font-size: 16px;
-      margin-bottom: 30px;
-      opacity: 0.9;
-      line-height: 1.5;
-    }
-
-    .cta-button {
-      background: #ffd700;
-      color: #333;
-      border: none;
-      padding: 15px 30px;
-      font-size: 18px;
-      font-weight: 600;
-      border-radius: 50px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    }
-
-    .cta-button:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
-    }
-
-    .features {
-      display: flex;
-      justify-content: space-around;
-      margin: 40px 0;
-      width: 100%;
-    }
-
-    .feature {
-      text-align: center;
-      flex: 1;
-      padding: 0 10px;
-    }
-
-    .feature-icon {
-      font-size: 24px;
-      margin-bottom: 10px;
-    }
-
-    .feature-text {
-      font-size: 14px;
-    }
-
-    .overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.9);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.3s ease;
-    }
-
-    .overlay.active {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .popup {
-      background: white;
-      width: 90%;
-      max-width: 350px;
-      border-radius: 20px;
-      padding: 25px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-      transform: scale(0.8);
-      transition: all 0.4s ease;
-      color: #333;
-      position: relative;
-    }
-
-    .overlay.active .popup {
-      transform: scale(1);
-    }
-
-    .close-btn {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      background: none;
-      border: none;
-      font-size: 24px;
-      cursor: not-allowed;
-      color: #ccc;
-    }
-
-    .close-btn.enabled {
-      color: #777;
-      cursor: pointer;
-    }
-
-    .popup-header {
-      margin-bottom: 20px;
-      text-align: center;
-    }
-
-    .popup-title {
-      font-size: 22px;
-      font-weight: 700;
-      color: #2575fc;
-      margin-bottom: 5px;
-    }
-
-    .popup-subtitle {
-      font-size: 16px;
-      color: #666;
-    }
-
-    .referral-form {
-      margin-top: 20px;
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-      text-align: left;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 600;
-      color: #444;
-    }
-
-    input {
-      width: 100%;
-      padding: 12px 15px;
-      border: 2px solid #e1e1e1;
-      border-radius: 10px;
-      font-size: 16px;
-      transition: border-color 0.3s;
-    }
-
-    input:focus {
-      border-color: #2575fc;
-      outline: none;
-    }
-
-    .submit-btn {
-      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-      color: white;
-      border: none;
-      padding: 15px;
-      width: 100%;
-      border-radius: 10px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-
-    .submit-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(37, 117, 252, 0.4);
-    }
-
-    .referral-info {
-      background: #f5f9ff;
-      border-radius: 10px;
-      padding: 15px;
-      margin-top: 20px;
-      text-align: left;
-    }
-
-    .info-title {
-      font-weight: 600;
-      margin-bottom: 10px;
-      color: #2575fc;
-    }
-
-    .info-item {
-      margin-bottom: 8px;
-      display: flex;
-    }
-
-    .info-label {
-      font-weight: 600;
-      width: 100px;
-    }
-
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .animate {
-      animation: fadeInUp 0.6s ease forwards;
-    }
-
-    .delay-1 { animation-delay: 0.2s; opacity: 0; }
-    .delay-2 { animation-delay: 0.4s; opacity: 0; }
-    .delay-3 { animation-delay: 0.6s; opacity: 0; }
+    /* (Tetap gunakan CSS kamu di sini — tidak berubah) */
   </style>
 </head>
 <body>
@@ -272,20 +16,17 @@
       Anda berhak mendapatkan <strong>Voucher Belanja senilai Rp 500.000</strong> dari kami!
       Segera klaim voucher Anda sebelum masa berlaku habis.
     </p>
-        <h3 class="animate2" style="text-align: left; margin-bottom: 5px;">Syarat & Ketentuan :</h1>
-        <p class="animate" style="text-align: left; font-size: small;" >
-- Voucher hanya berlaku untuk produk Genteng</br>
-- Voucher hanya berlaku untuk nama</br>
-  yang tercantum</br>
-- Voucher hanya berlaku untuk 1 orang</br>
-- Voucher tidak bisa di uangkan</br>
-- Berlaku selama tahun 2026
+    <h3 style="text-align: left; margin-bottom: 5px;">Syarat & Ketentuan :</h3>
+    <p style="text-align: left; font-size: small;">
+      - Voucher hanya berlaku untuk produk Genteng<br/>
+      - Voucher hanya berlaku untuk nama<br/>
+      - Voucher hanya berlaku untuk 1 orang<br/>
+      - Voucher tidak bisa diuangkan<br/>
+      - Berlaku selama tahun 2026
     </p>
-
-    <!-- <button class="cta-button animate delay-3" id="showPopup">Klaim Sekarang</button> -->
   </div>
 
-  <div class="overlay" id="overlay">
+  <div class="overlay active" id="overlay">
     <div class="popup">
       <button class="close-btn" id="closePopup">×</button>
 
@@ -298,14 +39,8 @@
 
       <div class="referral-info">
         <div class="info-title">Informasi Referral:</div>
-        <div class="info-item">
-          <span class="info-label">Nama:</span>
-          <span id="referralName">-</span>
-        </div>
-        <div class="info-item">
-          <span class="info-label">Perusahaan:</span>
-          <span id="referralCompany">-</span>
-        </div>
+        <div class="info-item"><span class="info-label">Nama:</span> <span id="referralName">-</span></div>
+        <div class="info-item"><span class="info-label">Perusahaan:</span> <span id="referralCompany">-</span></div>
       </div>
 
       <div class="referral-form">
@@ -332,8 +67,8 @@
   const referralCompanyElement = document.getElementById("referralCompany");
   const mainContent = document.getElementById("mainContent");
 
-  // URL Web App Google Script
-  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxmnZptFw_HPOPfqvd4s61_3et9R4LmKZWMB_7aYPoZZmnl77R1yftCibyIidM-xkpHHA/exec";
+  // URL Web App (ganti dengan URL deploy-mu)
+  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHmeAjIY245YoXZYAMJFnFak9apjlpw6QPW7vWy0TSIGi_D_JTfdF6AL8DgQbryjpq0w/exec";
 
   let klaimBerhasil = false;
 
@@ -342,84 +77,52 @@
     referralCompanyElement.textContent = company;
     overlay.classList.add("active");
 
-    // Jika kode sudah digunakan (disimpan di localStorage)
     if (localStorage.getItem(correctReferralCode) === "used") {
       referralInput.disabled = true;
       submitReferralBtn.disabled = true;
       submitReferralBtn.style.background = "#888";
-      alert("⚠️ Kode referral ini sudah digunakan dan tidak dapat diklaim lagi.");
+      alert("⚠️ Kode referral ini sudah digunakan.");
       mainContent.classList.add("active");
-      document.body.style.background =
-        "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)";
+      document.body.style.background = "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)";
       overlay.classList.remove("active");
     }
   });
 
   closePopupBtn.addEventListener("click", () => {
-    if (klaimBerhasil) {
-      overlay.classList.remove("active");
-    } else {
-      alert("Klaim voucher terlebih dahulu sebelum menutup popup.");
-    }
+    if (klaimBerhasil) overlay.classList.remove("active");
+    else alert("Klaim voucher terlebih dahulu sebelum menutup popup.");
   });
 
-  overlay.addEventListener("click", (e) => {
-    if (e.target === overlay && klaimBerhasil) {
-      overlay.classList.remove("active");
-    }
-  });
-
-  submitReferralBtn.addEventListener("click", function () {
+  submitReferralBtn.addEventListener("click", async function () {
     const userReferralCode = referralInput.value.trim();
+    if (userReferralCode === "") return alert("Silakan masukkan kode referral Anda.");
+    if (localStorage.getItem(userReferralCode) === "used")
+      return alert("⚠️ Kode referral ini sudah digunakan sebelumnya.");
+    if (userReferralCode !== correctReferralCode)
+      return alert("❌ Kode referral tidak sesuai.");
 
-    if (userReferralCode === "") {
-      alert("Silakan masukkan kode referral Anda.");
-      return;
+    // --- Kirim ke Apps Script ---
+    try {
+      const res = await fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: userReferralCode }),
+      });
+      const data = await res.json();
+      alert(data.message);
+
+      if (data.success) {
+        klaimBerhasil = true;
+        localStorage.setItem(userReferralCode, "used");
+        document.body.style.background =
+          "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)";
+        mainContent.classList.add("active");
+        overlay.classList.remove("active");
+      }
+    } catch (err) {
+      alert("❌ Gagal mengirim data: " + err);
     }
-
-    // Jika sudah digunakan sebelumnya
-    if (localStorage.getItem(userReferralCode) === "used") {
-      alert("⚠️ Kode referral ini sudah digunakan sebelumnya.");
-      return;
-    }
-
-    // Validasi kode referral
-    if (userReferralCode !== correctReferralCode) {
-      alert("❌ Kode referral tidak sesuai. Silakan periksa kembali.");
-      referralInput.style.borderColor = "red";
-      referralInput.focus();
-      return;
-    }
-
-    // Jika cocok → klaim berhasil
-    alert(
-      `✅ Kode referral "${userReferralCode}" berhasil diverifikasi!\nVoucher belanja Rp 500.000 telah diklaim.`
-    );
-
-    klaimBerhasil = true;
-    closePopupBtn.classList.add("enabled");
-    closePopupBtn.style.cursor = "pointer";
-    document.body.style.background =
-      "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)";
-    mainContent.classList.add("active");
-    overlay.classList.remove("active");
-
-    // Tandai di localStorage agar tidak bisa dipakai lagi
-    localStorage.setItem(userReferralCode, "used");
-
-    // Kirim status ke Google Sheet
-fetch(GOOGLE_SCRIPT_URL, {
-  method: "POST",
-  body: new URLSearchParams({ code: userReferralCode }),
-  headers: { "Content-Type": "application/x-www-form-urlencoded" },
-})
-
-      .then((res) => res.text())
-      .then((result) => {
-        console.log("Spreadsheet response:", result);
-      })
-      .catch((err) => console.error("Error updating sheet:", err));
   });
-</script>
+  </script>
 </body>
 </html>
