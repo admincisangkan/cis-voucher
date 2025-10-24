@@ -350,9 +350,9 @@
     </div>
   </div>
 
-  <script>
-    // URL Web App Google Script - GANTI DENGAN URL ANDA
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxmnZptFw_HPOPfqvd4s61_3et9R4LmKZWMB_7aYPoZZmnl77R1yftCibyIidM-xkpHHA/exec";
+<script>
+    // URL Web App Google Script
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxYPFv2X-T01iG7AZqL0yyz2G3XkY91FNMd3s-MJ3U6XBZOtTcb2llKc4ybcQnw2veMHQ/exec";
 
     // Ambil parameter dari URL
     const urlParams = new URLSearchParams(window.location.search);
@@ -374,82 +374,162 @@
 
     // Fungsi untuk menampilkan pesan
     function showMessage(message, isError = false) {
-      alert(message);
+      if (isError) {
+        alert("❌ " + message);
+      } else {
+        alert("✅ " + message);
+      }
     }
 
-    // Fungsi untuk mengirim data ke Google Apps Script
+    // Fungsi untuk mengirim data ke Google Apps Script dengan error handling
     async function sendToGoogleSheet(code) {
       try {
         // Tampilkan loading
         loadingElement.style.display = 'block';
         submitReferralBtn.disabled = true;
+        submitReferralBtn.textContent = "Memproses...";
 
-        // Persiapkan data sesuai dengan format yang diharapkan doPost di Apps Script
+        // Persiapkan data
         const payload = {
-          code: code
+          code: code.toUpperCase()
         };
 
-        console.log('Mengirim data ke Google Sheets:', payload);
+        console.log('Mengirim data:', payload);
 
+        // Gunakan approach yang berbeda untuk handle Google Apps Script redirect
         const response = await fetch(GOOGLE_SCRIPT_URL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(payload)
+          body: JSON.stringify(payload),
+          redirect: 'manual' // Handle redirect manually
         });
 
-        // Baca response sebagai text terlebih dahulu
-        const responseText = await response.text();
-        console.log('Response dari Google Apps Script:', responseText);
+        // Handle redirect
+        if (response.type === 'opaqueredirect') {
+          // Jika redirect, coba akses langsung dengan method berbeda
+          return await tryAlternativeMethod(code);
+        }
 
-        // Parse response text sebagai JSON
+        // Jika tidak redirect, proses normal
+        const responseText = await response.text();
+        console.log('Raw Response:', responseText);
+
+        // Parse response
         let result;
         try {
           result = JSON.parse(responseText);
         } catch (parseError) {
-          console.error('Error parsing JSON response:', parseError);
-          throw new Error('Format response tidak valid dari server');
+          console.error('Parse error:', parseError);
+          // Coba extract JSON dari HTML jika ada
+          const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            result = JSON.parse(jsonMatch[0]);
+          } else {
+            throw new Error('Format response tidak valid: ' + responseText.substring(0, 100));
+          }
         }
 
         return result;
 
       } catch (error) {
-        console.error('Error dalam sendToGoogleSheet:', error);
+        console.error('Error in sendToGoogleSheet:', error);
         throw error;
       } finally {
         // Sembunyikan loading
         loadingElement.style.display = 'none';
         submitReferralBtn.disabled = false;
+        submitReferralBtn.textContent = "Verifikasi & Klaim";
+      }
+    }
+
+    // Alternative method jika fetch biasa gagal
+    async function tryAlternativeMethod(code) {
+      try {
+        // Coba dengan XMLHttpRequest
+        return new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST', GOOGLE_SCRIPT_URL, true);
+          xhr.setRequestHeader('Content-Type', 'application/json');
+          
+          xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+              if (xhr.status === 200) {
+                try {
+                  const result = JSON.parse(xhr.responseText);
+                  resolve(result);
+                } catch (e) {
+                  reject(new Error('Failed to parse response: ' + e.message));
+                }
+              } else {
+                reject(new Error('Request failed with status: ' + xhr.status));
+              }
+            }
+          };
+          
+          xhr.onerror = function() {
+            reject(new Error('Network error occurred'));
+          };
+          
+          xhr.send(JSON.stringify({ code: code.toUpperCase() }));
+        });
+      } catch (error) {
+        throw error;
+      }
+    }
+
+    // Test koneksi ke Google Apps Script
+    async function testConnection() {
+      try {
+        const response = await fetch(GOOGLE_SCRIPT_URL + '?test=' + Date.now());
+        const text = await response.text();
+        console.log('Connection test:', text);
+        return true;
+      } catch (error) {
+        console.error('Connection test failed:', error);
+        return false;
       }
     }
 
     // Inisialisasi saat DOM siap
-    document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", async function () {
       referralNameElement.textContent = name;
       referralCompanyElement.textContent = company;
       
+      // Test koneksi terlebih dahulu
+      const isConnected = await testConnection();
+      if (!isConnected) {
+        console.warn('Koneksi ke server mungkin bermasalah');
+      }
+      
       // Tampilkan popup secara otomatis
-      overlay.classList.add("active");
+      setTimeout(() => {
+        overlay.classList.add("active");
+      }, 500);
 
       // Cek jika kode sudah digunakan sebelumnya
-      if (localStorage.getItem(correctReferralCode) === "used") {
-        referralInput.disabled = true;
-        submitReferralBtn.disabled = true;
-        submitReferralBtn.textContent = "Sudah Diklaim";
-        showMessage("⚠️ Kode referral ini sudah digunakan dan tidak dapat diklaim lagi.");
-        mainContent.classList.add("active");
-        document.body.style.background = "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)";
-        overlay.classList.remove("active");
+      if (localStorage.getItem(correctReferralCode.toUpperCase()) === "used") {
+        handleAlreadyClaimed();
       }
     });
+
+    function handleAlreadyClaimed() {
+      referralInput.disabled = true;
+      submitReferralBtn.disabled = true;
+      submitReferralBtn.textContent = "Sudah Diklaim";
+      showMessage("Kode referral ini sudah digunakan dan tidak dapat diklaim lagi.", true);
+      mainContent.classList.add("active");
+      document.body.style.background = "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)";
+      overlay.classList.remove("active");
+    }
 
     // Event listener untuk tombol close
     closePopupBtn.addEventListener("click", () => {
       if (klaimBerhasil) {
         overlay.classList.remove("active");
       } else {
-        showMessage("Klaim voucher terlebih dahulu sebelum menutup popup.");
+        showMessage("Klaim voucher terlebih dahulu sebelum menutup popup.", true);
       }
     });
 
@@ -465,13 +545,13 @@
       const userReferralCode = referralInput.value.trim();
 
       if (userReferralCode === "") {
-        showMessage("Silakan masukkan kode referral Anda.");
+        showMessage("Silakan masukkan kode referral Anda.", true);
         return;
       }
 
-      // Validasi format kode (opsional)
+      // Validasi format kode
       if (userReferralCode.length < 3) {
-        showMessage("Kode referral terlalu pendek.");
+        showMessage("Kode referral terlalu pendek.", true);
         referralInput.style.borderColor = "red";
         referralInput.focus();
         return;
@@ -484,9 +564,11 @@
         // Kirim data ke Google Sheets
         const result = await sendToGoogleSheet(userReferralCode);
 
+        console.log('Result from server:', result);
+
         if (result.success) {
           // Klaim berhasil
-          showMessage(`✅ ${result.message}`);
+          showMessage(result.message);
           
           klaimBerhasil = true;
           closePopupBtn.classList.add("enabled");
@@ -495,23 +577,33 @@
           mainContent.classList.add("active");
           
           // Tandai di localStorage agar tidak bisa dipakai lagi
-          localStorage.setItem(userReferralCode, "used");
+          localStorage.setItem(userReferralCode.toUpperCase(), "used");
           
           // Nonaktifkan form
           referralInput.disabled = true;
           submitReferralBtn.disabled = true;
           submitReferralBtn.textContent = "Voucher Berhasil Diklaim";
 
+          // Update info customer jika ada
+          if (result.customerName) {
+            referralNameElement.textContent = result.customerName;
+          }
+
         } else {
           // Klaim gagal
-          showMessage(`❌ ${result.message}`, true);
+          showMessage(result.message, true);
           referralInput.style.borderColor = "red";
           referralInput.focus();
+          
+          // Update info customer jika ada
+          if (result.customerName && result.customerName !== "-") {
+            referralNameElement.textContent = result.customerName;
+          }
         }
 
       } catch (error) {
         console.error('Error:', error);
-        showMessage("❌ Terjadi kesalahan saat memproses klaim. Silakan coba lagi.", true);
+        showMessage("Terjadi kesalahan saat memproses klaim. Error: " + error.message, true);
       }
     });
 
@@ -521,6 +613,11 @@
         submitReferralBtn.click();
       }
     });
-  </script>
+
+    // Auto-uppercase input
+    referralInput.addEventListener('input', function() {
+      this.value = this.value.toUpperCase();
+    });
+</script>
 </body>
 </html>
