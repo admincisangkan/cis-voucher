@@ -315,6 +315,18 @@
       border: 1px solid #f5c6cb;
       font-size: 14px;
     }
+
+    .warning-message {
+      display: none;
+      text-align: center;
+      padding: 10px;
+      background: #fff3cd;
+      color: #856404;
+      border-radius: 5px;
+      margin-top: 10px;
+      border: 1px solid #ffeaa7;
+      font-size: 14px;
+    }
   </style>
 </head>
 <body>
@@ -356,10 +368,6 @@
           <span class="info-label">Perusahaan:</span>
           <span id="referralCompany">-</span>
         </div>
-        <!-- <div class="info-item">
-          <span class="info-label">Kode Valid:</span>
-          <span id="validCode">-</span>
-        </div> -->
       </div>
 
       <div class="referral-form">
@@ -370,6 +378,10 @@
         
         <div class="error-message" id="errorMessage">
           ❌ Kode referral tidak sesuai. Silakan periksa kembali.
+        </div>
+
+        <div class="warning-message" id="warningMessage">
+          ⚠️ Kode ini sudah digunakan sebelumnya.
         </div>
         
         <div class="loading" id="loading">
@@ -403,11 +415,11 @@
     const referralInput = document.getElementById("referralInput");
     const referralNameElement = document.getElementById("referralName");
     const referralCompanyElement = document.getElementById("referralCompany");
-    const validCodeElement = document.getElementById("validCode");
     const mainContent = document.getElementById("mainContent");
     const loadingElement = document.getElementById("loading");
     const successMessage = document.getElementById("successMessage");
     const errorMessage = document.getElementById("errorMessage");
+    const warningMessage = document.getElementById("warningMessage");
 
     let klaimBerhasil = false;
 
@@ -438,6 +450,7 @@
     function showError(message) {
       errorMessage.textContent = "❌ " + message;
       errorMessage.style.display = 'block';
+      warningMessage.style.display = 'none';
       referralInput.style.borderColor = '#dc3545';
       
       // Sembunyikan error setelah 5 detik
@@ -446,9 +459,35 @@
       }, 5000);
     }
 
-    // Fungsi untuk menyembunyikan error message
-    function hideError() {
+    // Fungsi untuk menampilkan warning message (kode sudah digunakan)
+    function showWarning(message, customerName = "") {
+      let warningText = "⚠️ " + message;
+      if (customerName) {
+        warningText += ` - ${customerName}`;
+      }
+      
+      warningMessage.textContent = warningText;
+      warningMessage.style.display = 'block';
       errorMessage.style.display = 'none';
+      referralInput.style.borderColor = '#ffc107';
+      
+      // Nonaktifkan form
+      referralInput.disabled = true;
+      submitReferralBtn.disabled = true;
+      submitReferralBtn.textContent = "Sudah Diklaim";
+      
+      // Tunggu 3 detik lalu tutup popup dan tampilkan main content
+      setTimeout(() => {
+        overlay.classList.add("hidden");
+        mainContent.classList.add("active");
+        document.body.style.background = "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)";
+      }, 3000);
+    }
+
+    // Fungsi untuk menyembunyikan semua pesan
+    function hideAllMessages() {
+      errorMessage.style.display = 'none';
+      warningMessage.style.display = 'none';
       referralInput.style.borderColor = '#e1e1e1';
     }
 
@@ -501,7 +540,7 @@
         loadingElement.style.display = 'block';
         submitReferralBtn.disabled = true;
         submitReferralBtn.textContent = "Memproses...";
-        hideError();
+        hideAllMessages();
 
         const payload = {
           code: code.toUpperCase()
@@ -594,13 +633,6 @@
       referralNameElement.textContent = name;
       referralCompanyElement.textContent = company;
       
-      // Tampilkan kode valid di info referral
-      if (correctReferralCode) {
-        validCodeElement.textContent = correctReferralCode.toUpperCase();
-      } else {
-        validCodeElement.textContent = "Tidak tersedia";
-      }
-      
       // Tampilkan popup secara otomatis (langsung muncul)
       overlay.classList.add("active");
       
@@ -609,7 +641,7 @@
         referralInput.focus();
       }, 500);
 
-      // Cek jika kode sudah digunakan sebelumnya
+      // Cek jika kode sudah digunakan sebelumnya di localStorage
       if (correctReferralCode && localStorage.getItem(correctReferralCode.toUpperCase()) === "used") {
         handleAlreadyClaimed();
       }
@@ -667,7 +699,7 @@
         return;
       }
 
-      hideError();
+      hideAllMessages();
       referralInput.style.borderColor = "#e1e1e1";
 
       try {
@@ -679,10 +711,18 @@
           showMessage(result.message);
           handleSuccessState(userReferralCode, result.customerName);
         } else {
-          showMessage(result.message, true);
-          showError(result.message);
-          referralInput.focus();
+          // Handle kasus khusus: kode sudah digunakan
+          if (result.message && result.message.includes("sudah digunakan")) {
+            showWarning(result.message, result.customerName);
+            // Tandai di localStorage untuk mencegah penggunaan ulang
+            localStorage.setItem(userReferralCode.toUpperCase(), "used");
+          } else {
+            showMessage(result.message, true);
+            showError(result.message);
+            referralInput.focus();
+          }
           
+          // Update info customer jika ada
           if (result.customerName && result.customerName !== "-") {
             referralNameElement.textContent = result.customerName;
           }
@@ -705,7 +745,7 @@
     referralInput.addEventListener('input', function() {
       this.value = this.value.toUpperCase();
       // Sembunyikan error saat user mulai mengetik lagi
-      hideError();
+      hideAllMessages();
     });
 
     // Prevent auto-fill dan auto-complete
