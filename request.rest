@@ -1,5 +1,14 @@
 ####
-curl -L -X POST \
+curl -X POST \
   -H "Content-Type: application/json" \
   -d '{"code":"BPQ2K"}' \
-  "https://script.google.com/macros/s/AKfycbzziC3vFI7yJE2PV-2WBknY1a8-iQCMzIg3yQlM2uFEArpLQi1jm5o58H8PeQ4C18iBXw/exec"
+  "https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLgJ_17x_dKtf4Zx3fNJJA0YTShhWAsVTZxmELd1BAxH0qFLhuFfEh8Z7tY-L2uqnvIu2W38DPVVMP4TRF2gtrT63vBG593ZfcE4hCJ3szzwqT0Wv5Xd7QNRD24QXBJ5X9Fkxvd6hdf4JSX4rYoteI0Rqoh0lkW_LYN0vl65G9kPyRGNHWxZSy5_nvcSlQSvp_n9olGxBp2hSMJlhld-z4LJ1zPYsMF9h0Td_Egruf9J64HiAottzHODDinlWevC5El4mJulyW3E13AXc5-N38vCdPwEvzdCkFWq098D&lib=M3HejwICUYImOaljrSBiQwYZOnSeiJP0C"
+
+
+####
+POST https://script.google.com/macros/s/AKfycbzziC3vFI7yJE2PV-2WBknY1a8-iQCMzIg3yQlM2uFEArpLQi1jm5o58H8PeQ4C18iBXw/exec
+Content-Type: application/json
+
+{
+  "code": "BPQ2K"
+}
