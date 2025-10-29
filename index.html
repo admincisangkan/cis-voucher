@@ -380,6 +380,10 @@
           <span class="info-label">Perusahaan:</span>
           <span class="info-value" id="referralCompany">-</span>
         </div>
+        <div class="info-item">
+          <span class="info-label">Alamat:</span>
+          <span class="info-value" id="referralAddress">-</span>
+        </div>
       </div>
 
       <div class="referral-form">
@@ -418,6 +422,7 @@
     const urlParams = new URLSearchParams(window.location.search);
     const name = urlParams.get("name") || "Tidak tersedia";
     const company = urlParams.get("company") || "Tidak tersedia";
+    const address = urlParams.get("address") || "Tidak tersedia";
     const correctReferralCode = urlParams.get("code") || "";
 
     // Element references
@@ -427,6 +432,7 @@
     const referralInput = document.getElementById("referralInput");
     const referralNameElement = document.getElementById("referralName");
     const referralCompanyElement = document.getElementById("referralCompany");
+    const referralAddressElement = document.getElementById("referralAddress");
     const mainContent = document.getElementById("mainContent");
     const loadingElement = document.getElementById("loading");
     const successMessage = document.getElementById("successMessage");
@@ -514,7 +520,12 @@
         const input = document.createElement('input');
         input.type = 'hidden';
         input.name = 'payload';
-        input.value = JSON.stringify({ code: code.toUpperCase() });
+        input.value = JSON.stringify({ 
+          code: code.toUpperCase(),
+          name: name,
+          company: company,
+          address: address
+        });
         
         form.appendChild(input);
         document.body.appendChild(form);
@@ -555,7 +566,10 @@
         hideAllMessages();
 
         const payload = {
-          code: code.toUpperCase()
+          code: code.toUpperCase(),
+          name: name,
+          company: company,
+          address: address
         };
 
         console.log('Mengirim data:', payload);
@@ -577,7 +591,9 @@
           return {
             success: true,
             message: "✅ Klaim voucher berhasil! Data sedang diproses.",
-            customerName: name
+            customerName: name,
+            customerCompany: company,
+            customerAddress: address
           };
           
         } catch (fetchError) {
@@ -594,7 +610,9 @@
             return {
               success: true,
               message: "✅ Klaim voucher berhasil! (Simulasi)",
-              customerName: name
+              customerName: name,
+              customerCompany: company,
+              customerAddress: address
             };
           }
         }
@@ -610,7 +628,7 @@
     }
 
     // Fungsi untuk menangani state setelah klaim berhasil
-    function handleSuccessState(userReferralCode, customerName) {
+    function handleSuccessState(userReferralCode, customerName, customerCompany, customerAddress) {
       klaimBerhasil = true;
       
       // Tampilkan pesan sukses di popup
@@ -628,6 +646,12 @@
       if (customerName) {
         referralNameElement.textContent = customerName;
       }
+      if (customerCompany) {
+        referralCompanyElement.textContent = customerCompany;
+      }
+      if (customerAddress) {
+        referralAddressElement.textContent = customerAddress;
+      }
       
       // Tandai di localStorage
       localStorage.setItem(userReferralCode.toUpperCase(), "used");
@@ -642,8 +666,10 @@
 
     // Inisialisasi saat DOM siap
     document.addEventListener("DOMContentLoaded", function () {
+      // Set nilai dari parameter URL
       referralNameElement.textContent = name;
       referralCompanyElement.textContent = company;
+      referralAddressElement.textContent = address;
       
       // Tampilkan popup secara otomatis (langsung muncul)
       overlay.classList.add("active");
@@ -721,7 +747,12 @@
 
         if (result.success) {
           showMessage(result.message);
-          handleSuccessState(userReferralCode, result.customerName);
+          handleSuccessState(
+            userReferralCode, 
+            result.customerName || name,
+            result.customerCompany || company,
+            result.customerAddress || address
+          );
         } else {
           // Handle kasus khusus: kode sudah digunakan
           if (result.message && result.message.includes("sudah digunakan")) {
@@ -737,6 +768,12 @@
           // Update info customer jika ada
           if (result.customerName && result.customerName !== "-") {
             referralNameElement.textContent = result.customerName;
+          }
+          if (result.customerCompany && result.customerCompany !== "-") {
+            referralCompanyElement.textContent = result.customerCompany;
+          }
+          if (result.customerAddress && result.customerAddress !== "-") {
+            referralAddressElement.textContent = result.customerAddress;
           }
         }
 
