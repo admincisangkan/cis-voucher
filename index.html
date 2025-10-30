@@ -344,9 +344,9 @@
 <body>
   <div class="container" id="mainContent">
     <div class="logo animate">🎉</div>
-    <h1 class="animate">Selamat <span id="referralName">!</span></h1>
+    <h1 class="animate">Selamat <span id="mainReferralName">!</span></h1>
     <p class="animate delay-1">
-      Anda berhak mendapatkan <strong>Voucher Belanja senilai Rp 500.000</strong>
+      Anda berhak mendapatkan</br><strong>Voucher Belanja senilai Rp 500.000</strong>
     </p>
     <h3 class="animate" style="text-align: left; margin-bottom: 5px;">Syarat & Ketentuan :</h3>
     <p class="animate" style="text-align: left; font-size: small;">
@@ -373,15 +373,15 @@
         <div class="info-title">Informasi Referral:</div>
         <div class="info-item">
           <span class="info-label">Nama:</span>
-          <span class="info-value" id="referralName">-</span>
+          <span class="info-value" id="popupReferralName">-</span>
         </div>
         <div class="info-item">
           <span class="info-label">Perusahaan:</span>
-          <span class="info-value" id="referralCompany">-</span>
+          <span class="info-value" id="popupReferralCompany">-</span>
         </div>
         <div class="info-item">
           <span class="info-label">Alamat:</span>
-          <span class="info-value" id="referralAddress">-</span>
+          <span class="info-value" id="popupReferralAddress">-</span>
         </div>
       </div>
 
@@ -424,14 +424,15 @@
     const address = urlParams.get("address") || "Tidak tersedia";
     const correctReferralCode = urlParams.get("code") || "";
 
-    // Element references
+    // Element references - DENGAN ID YANG UNIK
     const overlay = document.getElementById("overlay");
     const closePopupBtn = document.getElementById("closePopup");
     const submitReferralBtn = document.getElementById("submitReferral");
     const referralInput = document.getElementById("referralInput");
-    const referralNameElement = document.getElementById("referralName");
-    const referralCompanyElement = document.getElementById("referralCompany");
-    const referralAddressElement = document.getElementById("referralAddress");
+    const mainReferralNameElement = document.getElementById("mainReferralName"); // ID UNIK
+    const popupReferralNameElement = document.getElementById("popupReferralName"); // ID UNIK
+    const popupReferralCompanyElement = document.getElementById("popupReferralCompany"); // ID UNIK
+    const popupReferralAddressElement = document.getElementById("popupReferralAddress"); // ID UNIK
     const mainContent = document.getElementById("mainContent");
     const loadingElement = document.getElementById("loading");
     const successMessage = document.getElementById("successMessage");
@@ -643,13 +644,13 @@
       
       // Update info customer jika ada
       if (customerName) {
-        referralNameElement.textContent = customerName;
+        popupReferralNameElement.textContent = customerName;
       }
       if (customerCompany) {
-        referralCompanyElement.textContent = customerCompany;
+        popupReferralCompanyElement.textContent = customerCompany;
       }
       if (customerAddress) {
-        referralAddressElement.textContent = customerAddress;
+        popupReferralAddressElement.textContent = customerAddress;
       }
       
       // Tandai di localStorage
@@ -665,10 +666,11 @@
 
     // Inisialisasi saat DOM siap
     document.addEventListener("DOMContentLoaded", function () {
-      // Set nilai dari parameter URL
-      referralNameElement.textContent = name;
-      referralCompanyElement.textContent = company;
-      referralAddressElement.textContent = address;
+      // Set nilai dari parameter URL - KE SEMUA ELEMEN YANG DIPERLUKAN
+      mainReferralNameElement.textContent = name; // Untuk konten utama
+      popupReferralNameElement.textContent = name; // Untuk popup
+      popupReferralCompanyElement.textContent = company;
+      popupReferralAddressElement.textContent = address;
       
       // Tampilkan popup secara otomatis (langsung muncul)
       overlay.classList.add("active");
@@ -766,13 +768,13 @@
           
           // Update info customer jika ada
           if (result.customerName && result.customerName !== "-") {
-            referralNameElement.textContent = result.customerName;
+            popupReferralNameElement.textContent = result.customerName;
           }
           if (result.customerCompany && result.customerCompany !== "-") {
-            referralCompanyElement.textContent = result.customerCompany;
+            popupReferralCompanyElement.textContent = result.customerCompany;
           }
           if (result.customerAddress && result.customerAddress !== "-") {
-            referralAddressElement.textContent = result.customerAddress;
+            popupReferralAddressElement.textContent = result.customerAddress;
           }
         }
 
