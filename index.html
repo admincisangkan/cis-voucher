@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Klaim Voucher Belanja</title>
+  <!-- Include html2pdf library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     * {
       margin: 0;
@@ -23,7 +25,7 @@
       padding: 20px;
       overflow: hidden;
       /* Background default */
-      background-image: url('./background.jpg'); /* Ganti dengan path gambar Anda */
+      background-image: url('./voucher-bg.jpg'); /* Ganti dengan path gambar Anda */
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
@@ -88,11 +90,49 @@
       cursor: pointer;
       transition: all 0.3s ease;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      margin: 5px;
     }
 
     .cta-button:hover {
       transform: translateY(-3px);
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    /* Download PDF Button Styles */
+    .download-pdf-btn {
+      background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      font-size: 18px;
+      font-weight: 600;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      margin: 10px 5px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-width: 200px;
+    }
+
+    .download-pdf-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(150, 201, 61, 0.4);
+      background: linear-gradient(135deg, #00a18b 0%, #8bc02d 100%);
+    }
+
+    .download-pdf-btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .download-icon {
+      font-size: 20px;
     }
 
     .features {
@@ -233,7 +273,7 @@
       transition: all 0.3s ease;
     }
 
-       .animate.titles {
+    .animate.titles {
       color: yellow;
     }
 
@@ -305,6 +345,30 @@
       color: #fc6125;
     }
 
+    /* Success Voucher Info Styles */
+    .voucher-success-info {
+      background: rgba(255, 215, 0, 0.1);
+      border: 2px solid #ffd700;
+      border-radius: 15px;
+      padding: 20px;
+      margin: 20px 0;
+      text-align: center;
+    }
+
+    .voucher-code {
+      font-size: 24px;
+      font-weight: bold;
+      color: #ffd700;
+      margin: 10px 0;
+      letter-spacing: 2px;
+    }
+
+    .success-title {
+      color: #ffd700;
+      font-size: 22px;
+      margin-bottom: 15px;
+    }
+
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
@@ -324,7 +388,6 @@
     .animate {
       animation: fadeInUp 0.6s ease forwards;
     }
-
 
     .delay-1 { animation-delay: 0.2s; opacity: 0; }
     .delay-2 { animation-delay: 0.4s; opacity: 0; }
@@ -364,6 +427,22 @@
       border: 1px solid #ffeaa7;
       font-size: 14px;
     }
+
+    /* Button Container */
+    .button-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    @media (min-width: 768px) {
+      .button-container {
+        flex-direction: row;
+        justify-content: center;
+      }
+    }
   </style>
 </head>
 <body>
@@ -373,6 +452,17 @@
     <p class="animate delay-1">
       Anda berhak mendapatkan</br><strong class="notif-voucher">Voucher Belanja senilai Rp 500.000</strong>
     </p>
+    
+    <!-- Voucher Success Info (akan ditampilkan setelah klaim berhasil) -->
+    <div id="voucherSuccessInfo" style="display: none;">
+      <div class="voucher-success-info animate">
+        <h2 class="success-title">🎊 Voucher Berhasil Diklaim! 🎊</h2>
+        <p>Kode Voucher Anda:</p>
+        <div class="voucher-code" id="successVoucherCode">-</div>
+        <p style="font-size: 14px; margin-top: 10px;">Simpan voucher ini untuk digunakan pada transaksi Anda</p>
+      </div>
+    </div>
+
     <h3 class="animate" style="text-align: left; margin-bottom: 5px;">Syarat & Ketentuan :</h3>
     <p class="animate" style="text-align: left; font-size: small; font-style: italic;">
       - Voucher berlaku untuk semua produk, dengan minimal transaksi sebesar 5 juta</br>
@@ -381,6 +471,14 @@
       - Voucher tidak bisa di uangkan</br>
       - Berlaku dalam periode 6 bulan
     </p>
+
+    <div class="button-container">
+      <button class="cta-button" id="claimButton" style="display: none;">Klaim Voucher Lainnya</button>
+      <button class="download-pdf-btn" id="downloadPdfBtn" style="display: none;">
+        <span class="download-icon">📥</span>
+        Download PDF
+      </button>
+    </div>
   </div>
 
   <div class="overlay" id="overlay">
@@ -449,22 +547,76 @@
     const address = urlParams.get("address") || "Tidak tersedia";
     const correctReferralCode = urlParams.get("code") || "";
 
-    // Element references - DENGAN ID YANG UNIK
+    // Element references
     const overlay = document.getElementById("overlay");
     const closePopupBtn = document.getElementById("closePopup");
     const submitReferralBtn = document.getElementById("submitReferral");
     const referralInput = document.getElementById("referralInput");
-    const mainReferralNameElement = document.getElementById("mainReferralName"); // ID UNIK
-    const popupReferralNameElement = document.getElementById("popupReferralName"); // ID UNIK
-    const popupReferralCompanyElement = document.getElementById("popupReferralCompany"); // ID UNIK
-    const popupReferralAddressElement = document.getElementById("popupReferralAddress"); // ID UNIK
+    const mainReferralNameElement = document.getElementById("mainReferralName");
+    const popupReferralNameElement = document.getElementById("popupReferralName");
+    const popupReferralCompanyElement = document.getElementById("popupReferralCompany");
+    const popupReferralAddressElement = document.getElementById("popupReferralAddress");
     const mainContent = document.getElementById("mainContent");
     const loadingElement = document.getElementById("loading");
     const successMessage = document.getElementById("successMessage");
     const errorMessage = document.getElementById("errorMessage");
     const warningMessage = document.getElementById("warningMessage");
+    const claimButton = document.getElementById("claimButton");
+    const downloadPdfBtn = document.getElementById("downloadPdfBtn");
+    const voucherSuccessInfo = document.getElementById("voucherSuccessInfo");
+    const successVoucherCode = document.getElementById("successVoucherCode");
 
     let klaimBerhasil = false;
+    let voucherCode = "";
+
+    // Fungsi untuk generate voucher code
+    function generateVoucherCode() {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let result = 'VCH-';
+      for (let i = 0; i < 8; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return result;
+    }
+
+    // Fungsi untuk download PDF dari landing page success
+    function downloadSuccessPagePDF() {
+      // Sembunyikan tombol sementara saat generate PDF
+      downloadPdfBtn.disabled = true;
+      downloadPdfBtn.innerHTML = '<span class="download-icon">⏳</span> Membuat PDF...';
+
+      // Konfigurasi untuk html2pdf
+      const element = mainContent;
+      const opt = {
+        margin: 10,
+        filename: `Voucher_Success_${name}_${voucherCode}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { 
+          scale: 2,
+          useCORS: true,
+          backgroundColor: '#000000'
+        },
+        jsPDF: { 
+          unit: 'mm', 
+          format: 'a4', 
+          orientation: 'portrait' 
+        }
+      };
+
+      // Generate PDF
+      html2pdf().set(opt).from(element).save().then(() => {
+        // Reset tombol setelah selesai
+        downloadPdfBtn.disabled = false;
+        downloadPdfBtn.innerHTML = '<span class="download-icon">📥</span> Download PDF';
+        
+        showMessage("PDF berhasil diunduh!", false);
+      }).catch(error => {
+        console.error('Error generating PDF:', error);
+        downloadPdfBtn.disabled = false;
+        downloadPdfBtn.innerHTML = '<span class="download-icon">📥</span> Download PDF';
+        showMessage("Gagal mengunduh PDF. Silakan coba lagi.", true);
+      });
+    }
 
     // Fungsi untuk mengubah background
     function setBackgroundImage(imagePath) {
@@ -474,13 +626,6 @@
       document.body.style.backgroundRepeat = 'no-repeat';
       document.body.style.backgroundAttachment = 'fixed';
       document.body.classList.remove('no-bg-image');
-    }
-
-    // Fungsi untuk mengubah ke gradient (fallback)
-    function setGradientBackground() {
-      document.body.style.backgroundImage = 'none';
-      document.body.style.background = 'linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)';
-      document.body.classList.add('no-bg-image');
     }
 
     // Fungsi untuk menampilkan pesan
@@ -497,12 +642,6 @@
       const inputUpper = inputCode.toUpperCase().trim();
       const correctUpper = correctReferralCode.toUpperCase().trim();
       
-      console.log('Validasi kode:', {
-        input: inputUpper,
-        correct: correctUpper,
-        match: inputUpper === correctUpper
-      });
-      
       return inputUpper === correctUpper;
     }
 
@@ -513,13 +652,12 @@
       warningMessage.style.display = 'none';
       referralInput.style.borderColor = '#dc3545';
       
-      // Sembunyikan error setelah 5 detik
       setTimeout(() => {
         errorMessage.style.display = 'none';
       }, 5000);
     }
 
-    // Fungsi untuk menampilkan warning message (kode sudah digunakan)
+    // Fungsi untuk menampilkan warning message
     function showWarning(message, customerName = "") {
       let warningText = "⚠️ " + message;
       if (customerName) {
@@ -531,16 +669,14 @@
       errorMessage.style.display = 'none';
       referralInput.style.borderColor = '#ffc107';
       
-      // Nonaktifkan form
       referralInput.disabled = true;
       submitReferralBtn.disabled = true;
       submitReferralBtn.textContent = "Sudah Diklaim";
       
-      // Tunggu 3 detik lalu tutup popup dan tampilkan main content
       setTimeout(() => {
         overlay.classList.add("hidden");
         mainContent.classList.add("active");
-        setBackgroundImage('./background-success.jpg'); // Ganti dengan gambar success
+        setBackgroundImage('./background-success.jpg');
       }, 3000);
     }
 
@@ -551,7 +687,7 @@
       referralInput.style.borderColor = '#e1e1e1';
     }
 
-    // Fungsi untuk mengirim data menggunakan JSONP approach
+    // Fungsi untuk mengirim data ke Google Sheet
     function sendToGoogleSheetJSONP(code) {
       return new Promise((resolve, reject) => {
         const form = document.createElement('form');
@@ -566,7 +702,9 @@
           code: code.toUpperCase(),
           name: name,
           company: company,
-          address: address
+          address: address,
+          voucher_code: voucherCode,
+          claim_date: new Date().toISOString()
         });
         
         form.appendChild(input);
@@ -599,7 +737,7 @@
       });
     }
 
-    // Fungsi untuk mengirim data menggunakan Google Apps Script URL Fetch
+    // Fungsi untuk mengirim data menggunakan Google Apps Script
     async function sendToGoogleSheet(code) {
       try {
         loadingElement.style.display = 'block';
@@ -607,16 +745,18 @@
         submitReferralBtn.textContent = "Memproses...";
         hideAllMessages();
 
+        // Generate voucher code
+        voucherCode = generateVoucherCode();
+
         const payload = {
           code: code.toUpperCase(),
           name: name,
           company: company,
-          address: address
+          address: address,
+          voucher_code: voucherCode,
+          claim_date: new Date().toISOString()
         };
 
-        console.log('Mengirim data:', payload);
-
-        // Method 1: Coba dengan fetch terlebih dahulu
         try {
           const response = await fetch(GOOGLE_SCRIPT_URL, {
             method: 'POST',
@@ -627,7 +767,6 @@
             mode: 'no-cors'
           });
           
-          console.log('Fetch request sent (no-cors mode)');
           await new Promise(resolve => setTimeout(resolve, 2000));
           
           return {
@@ -635,26 +774,22 @@
             message: "✅ Klaim voucher berhasil! Data sedang diproses.",
             customerName: name,
             customerCompany: company,
-            customerAddress: address
+            customerAddress: address,
+            voucherCode: voucherCode
           };
           
         } catch (fetchError) {
-          console.log('Fetch failed, trying JSONP:', fetchError);
-          
-          // Method 2: Coba dengan JSONP approach
           try {
             const result = await sendToGoogleSheetJSONP(code);
             return result;
           } catch (jsonpError) {
-            console.log('JSONP also failed:', jsonpError);
-            
-            // Method 3: Simulasi success untuk testing
             return {
               success: true,
               message: "✅ Klaim voucher berhasil! (Simulasi)",
               customerName: name,
               customerCompany: company,
-              customerAddress: address
+              customerAddress: address,
+              voucherCode: voucherCode
             };
           }
         }
@@ -670,21 +805,16 @@
     }
 
     // Fungsi untuk menangani state setelah klaim berhasil
-    function handleSuccessState(userReferralCode, customerName, customerCompany, customerAddress) {
+    function handleSuccessState(userReferralCode, customerName, customerCompany, customerAddress, generatedVoucherCode) {
       klaimBerhasil = true;
+      voucherCode = generatedVoucherCode || voucherCode;
       
-      // Tampilkan pesan sukses di popup
       successMessage.style.display = 'block';
       submitReferralBtn.style.display = 'none';
-      
-      // Nonaktifkan input
       referralInput.disabled = true;
-      
-      // Aktifkan tombol close
       closePopupBtn.classList.add("enabled");
       closePopupBtn.style.cursor = "pointer";
       
-      // Update info customer jika ada
       if (customerName) {
         popupReferralNameElement.textContent = customerName;
       }
@@ -695,37 +825,39 @@
         popupReferralAddressElement.textContent = customerAddress;
       }
       
-      // Tandai di localStorage
       localStorage.setItem(userReferralCode.toUpperCase(), "used");
       
-      // Tunggu 3 detik lalu tutup popup dan tampilkan main content
       setTimeout(() => {
         overlay.classList.add("hidden");
         mainContent.classList.add("active");
-        setBackgroundImage('./background-success.jpg'); // Ganti dengan gambar success
+        setBackgroundImage('./voucher-bg.jpg');
+        
+        // Tampilkan informasi voucher success
+        successVoucherCode.textContent = voucherCode;
+        voucherSuccessInfo.style.display = 'block';
+        
+        // Tampilkan tombol download PDF
+        downloadPdfBtn.style.display = 'inline-flex';
+        
+        // Tampilkan tombol klaim lainnya (opsional)
+        claimButton.style.display = 'inline-block';
       }, 3000);
     }
 
     // Inisialisasi saat DOM siap
     document.addEventListener("DOMContentLoaded", function () {
-      // Set nilai dari parameter URL - KE SEMUA ELEMEN YANG DIPERLUKAN
-      mainReferralNameElement.textContent = name; // Untuk konten utama
-      popupReferralNameElement.textContent = name; // Untuk popup
+      mainReferralNameElement.textContent = name;
+      popupReferralNameElement.textContent = name;
       popupReferralCompanyElement.textContent = company;
       popupReferralAddressElement.textContent = address;
       
-      // Set background image default
       setBackgroundImage('./background.jpg');
-      
-      // Tampilkan popup secara otomatis (langsung muncul)
       overlay.classList.add("active");
       
-      // Fokus ke input field
       setTimeout(() => {
         referralInput.focus();
       }, 500);
 
-      // Cek jika kode sudah digunakan sebelumnya di localStorage
       if (correctReferralCode && localStorage.getItem(correctReferralCode.toUpperCase()) === "used") {
         handleAlreadyClaimed();
       }
@@ -737,13 +869,33 @@
       submitReferralBtn.textContent = "Sudah Diklaim";
       showMessage("Kode referral ini sudah digunakan dan tidak dapat diklaim lagi.", true);
       mainContent.classList.add("active");
-      setBackgroundImage('./voucher-bg.jpg'); // Ganti dengan gambar already claimed
+      setBackgroundImage('./voucher-bg.jpg');
       setTimeout(() => {
         overlay.classList.add("hidden");
       }, 1000);
     }
 
-    // Event listener untuk tombol close - HANYA bisa ditutup setelah klaim berhasil
+    // Event Listeners
+    downloadPdfBtn.addEventListener("click", downloadSuccessPagePDF);
+
+    claimButton.addEventListener("click", () => {
+      // Reset form untuk klaim baru
+      referralInput.value = '';
+      referralInput.disabled = false;
+      submitReferralBtn.disabled = false;
+      submitReferralBtn.style.display = 'block';
+      submitReferralBtn.textContent = "Verifikasi & Klaim";
+      successMessage.style.display = 'none';
+      voucherSuccessInfo.style.display = 'none';
+      downloadPdfBtn.style.display = 'none';
+      claimButton.style.display = 'none';
+      
+      overlay.classList.add("active");
+      setTimeout(() => {
+        referralInput.focus();
+      }, 500);
+    });
+
     closePopupBtn.addEventListener("click", () => {
       if (klaimBerhasil) {
         overlay.classList.add("hidden");
@@ -754,14 +906,12 @@
       }
     });
 
-    // Event listener untuk klik di luar popup - DIBLOKIR sampai klaim berhasil
     overlay.addEventListener("click", (e) => {
       if (e.target === overlay && !klaimBerhasil) {
         showMessage("Harap klaim voucher terlebih dahulu sebelum menutup popup.", true);
       }
     });
 
-    // Event listener untuk tombol submit
     submitReferralBtn.addEventListener("click", async function () {
       const userReferralCode = referralInput.value.trim();
 
@@ -776,7 +926,6 @@
         return;
       }
 
-      // VALIDASI KODE REFERRAL - CEK APAKAH SESUAI DENGAN URL
       if (!validateReferralCode(userReferralCode)) {
         showError("Kode referral tidak sesuai. Silakan periksa kembali.");
         referralInput.focus();
@@ -789,21 +938,18 @@
       try {
         const result = await sendToGoogleSheet(userReferralCode);
 
-        console.log('Result from server:', result);
-
         if (result.success) {
           showMessage(result.message);
           handleSuccessState(
             userReferralCode, 
             result.customerName || name,
             result.customerCompany || company,
-            result.customerAddress || address
+            result.customerAddress || address,
+            result.voucherCode
           );
         } else {
-          // Handle kasus khusus: kode sudah digunakan
           if (result.message && result.message.includes("sudah digunakan")) {
             showWarning(result.message, result.customerName);
-            // Tandai di localStorage untuk mencegah penggunaan ulang
             localStorage.setItem(userReferralCode.toUpperCase(), "used");
           } else {
             showMessage(result.message, true);
@@ -811,7 +957,6 @@
             referralInput.focus();
           }
           
-          // Update info customer jika ada
           if (result.customerName && result.customerName !== "-") {
             popupReferralNameElement.textContent = result.customerName;
           }
@@ -829,21 +974,17 @@
       }
     });
 
-    // Event listener untuk tekan Enter di input field
     referralInput.addEventListener("keypress", function (e) {
       if (e.key === "Enter") {
         submitReferralBtn.click();
       }
     });
 
-    // Auto-uppercase input
     referralInput.addEventListener('input', function() {
       this.value = this.value.toUpperCase();
-      // Sembunyikan error saat user mulai mengetik lagi
       hideAllMessages();
     });
 
-    // Prevent auto-fill dan auto-complete
     referralInput.setAttribute('autocomplete', 'off');
     referralInput.setAttribute('autocorrect', 'off');
     referralInput.setAttribute('autocapitalize', 'off');
