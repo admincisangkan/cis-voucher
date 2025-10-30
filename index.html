@@ -22,6 +22,18 @@
       justify-content: center;
       padding: 20px;
       overflow: hidden;
+      /* Background default */
+      background-image: url('./background.jpg'); /* Ganti dengan path gambar Anda */
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      transition: background-image 0.5s ease;
+    }
+
+    /* Fallback jika gambar tidak load */
+    body.no-bg-image {
+      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
     }
 
     .container {
@@ -30,6 +42,10 @@
       text-align: center;
       opacity: 0.1;
       transition: opacity 0.3s ease;
+      background: rgb(0 0 0 / 34%); /* Background semi-transparent untuk kontras */
+      padding: 20px;
+      border-radius: 15px;
+      backdrop-filter: blur(5px);
     }
 
     .container.active {
@@ -217,6 +233,10 @@
       transition: all 0.3s ease;
     }
 
+       .animate.titles {
+      color: yellow;
+    }
+
     .submit-btn:hover {
       transform: translateY(-2px);
       box-shadow: 0 5px 15px rgba(37, 117, 252, 0.4);
@@ -281,6 +301,10 @@
       margin: 0 auto;
     }
 
+    .notif-voucher {
+      color: #fc6125;
+    }
+
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
@@ -300,6 +324,7 @@
     .animate {
       animation: fadeInUp 0.6s ease forwards;
     }
+
 
     .delay-1 { animation-delay: 0.2s; opacity: 0; }
     .delay-2 { animation-delay: 0.4s; opacity: 0; }
@@ -344,12 +369,12 @@
 <body>
   <div class="container" id="mainContent">
     <div class="logo animate">🎉</div>
-    <h1 class="animate">Selamat <span id="mainReferralName">!</span></h1>
+    <h1 class="animate titles">Selamat <span id="mainReferralName">!</span></h1>
     <p class="animate delay-1">
-      Anda berhak mendapatkan</br><strong>Voucher Belanja senilai Rp 500.000</strong>
+      Anda berhak mendapatkan</br><strong class="notif-voucher">Voucher Belanja senilai Rp 500.000</strong>
     </p>
     <h3 class="animate" style="text-align: left; margin-bottom: 5px;">Syarat & Ketentuan :</h3>
-    <p class="animate" style="text-align: left; font-size: small;">
+    <p class="animate" style="text-align: left; font-size: small; font-style: italic;">
       - Voucher berlaku untuk semua produk, dengan minimal transaksi sebesar 5 juta</br>
       - Voucher hanya berlaku untuk nama yang tercantum</br>
       - Voucher hanya berlaku untuk 1 orang</br>
@@ -441,6 +466,23 @@
 
     let klaimBerhasil = false;
 
+    // Fungsi untuk mengubah background
+    function setBackgroundImage(imagePath) {
+      document.body.style.backgroundImage = `url('${imagePath}')`;
+      document.body.style.backgroundSize = 'cover';
+      document.body.style.backgroundPosition = 'center';
+      document.body.style.backgroundRepeat = 'no-repeat';
+      document.body.style.backgroundAttachment = 'fixed';
+      document.body.classList.remove('no-bg-image');
+    }
+
+    // Fungsi untuk mengubah ke gradient (fallback)
+    function setGradientBackground() {
+      document.body.style.backgroundImage = 'none';
+      document.body.style.background = 'linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)';
+      document.body.classList.add('no-bg-image');
+    }
+
     // Fungsi untuk menampilkan pesan
     function showMessage(message, isError = false) {
       if (isError) {
@@ -498,7 +540,7 @@
       setTimeout(() => {
         overlay.classList.add("hidden");
         mainContent.classList.add("active");
-        document.body.style.background = "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)";
+        setBackgroundImage('./background-success.jpg'); // Ganti dengan gambar success
       }, 3000);
     }
 
@@ -660,7 +702,7 @@
       setTimeout(() => {
         overlay.classList.add("hidden");
         mainContent.classList.add("active");
-        document.body.style.background = "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)";
+        setBackgroundImage('./background-success.jpg'); // Ganti dengan gambar success
       }, 3000);
     }
 
@@ -671,6 +713,9 @@
       popupReferralNameElement.textContent = name; // Untuk popup
       popupReferralCompanyElement.textContent = company;
       popupReferralAddressElement.textContent = address;
+      
+      // Set background image default
+      setBackgroundImage('./background.jpg');
       
       // Tampilkan popup secara otomatis (langsung muncul)
       overlay.classList.add("active");
@@ -692,7 +737,7 @@
       submitReferralBtn.textContent = "Sudah Diklaim";
       showMessage("Kode referral ini sudah digunakan dan tidak dapat diklaim lagi.", true);
       mainContent.classList.add("active");
-      document.body.style.background = "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)";
+      setBackgroundImage('./voucher-bg.jpg'); // Ganti dengan gambar already claimed
       setTimeout(() => {
         overlay.classList.add("hidden");
       }, 1000);
@@ -703,7 +748,7 @@
       if (klaimBerhasil) {
         overlay.classList.add("hidden");
         mainContent.classList.add("active");
-        document.body.style.background = "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)";
+        setBackgroundImage('./voucher-bg.jpg');
       } else {
         showMessage("Harap klaim voucher terlebih dahulu sebelum menutup popup.", true);
       }
