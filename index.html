@@ -31,6 +31,8 @@
       background-repeat: no-repeat;
       background-attachment: fixed;
       transition: background-image 0.5s ease;
+      min-height: 100vh;
+      overflow-y: auto;
     }
 
     /* Fallback jika gambar tidak load */
@@ -98,41 +100,55 @@
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
     }
 
-    /* Download PDF Button Styles */
-    .download-pdf-btn {
+    /* Floating Download PDF Button Styles */
+    .floating-download-btn {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 70px;
+      height: 70px;
       background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%);
       color: white;
       border: none;
-      padding: 15px 30px;
-      font-size: 18px;
-      font-weight: 600;
-      border-radius: 50px;
+      border-radius: 50%;
       cursor: pointer;
       transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-      margin: 10px 5px;
-      display: inline-flex;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+      display: flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
-      min-width: 200px;
+      font-size: 28px;
+      z-index: 1000;
+      animation: float 3s ease-in-out infinite;
     }
 
-    .download-pdf-btn:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 6px 20px rgba(150, 201, 61, 0.4);
+    .floating-download-btn:hover {
+      transform: scale(1.1) translateY(-5px);
+      box-shadow: 0 12px 30px rgba(150, 201, 61, 0.4);
       background: linear-gradient(135deg, #00a18b 0%, #8bc02d 100%);
     }
 
-    .download-pdf-btn:disabled {
+    .floating-download-btn:disabled {
       background: #ccc;
       cursor: not-allowed;
       transform: none;
       box-shadow: none;
     }
 
-    .download-icon {
-      font-size: 20px;
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+
+    /* Floating Button Pulse Animation */
+    .floating-download-btn.pulse {
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(0, 176, 155, 0.7); }
+      70% { box-shadow: 0 0 0 15px rgba(0, 176, 155, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(0, 176, 155, 0); }
     }
 
     .features {
@@ -369,6 +385,22 @@
       margin-bottom: 15px;
     }
 
+    /* Already Claimed Info Styles */
+    .already-claimed-info {
+      background: rgba(255, 0, 0, 0.1);
+      border: 2px solid #ff4444;
+      border-radius: 15px;
+          padding: 14px 11px;
+      margin: 20px 0;
+      text-align: center;
+    }
+
+    .already-claimed-title {
+      color: #ff4444;
+      font-size: 22px;
+      margin-bottom: 15px;
+    }
+
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
@@ -443,6 +475,23 @@
         justify-content: center;
       }
     }
+
+    /* Mobile Responsive Styles for PDF */
+    @media (max-width: 767px) {
+      .container {
+        margin: 10px;
+        padding: 15px;
+        max-width: 100%;
+      }
+      
+      .floating-download-btn {
+        bottom: 20px;
+        right: 20px;
+        width: 60px;
+        height: 60px;
+        font-size: 24px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -457,9 +506,15 @@
     <div id="voucherSuccessInfo" style="display: none;">
       <div class="voucher-success-info animate">
         <h2 class="success-title">🎊 Voucher Berhasil Diklaim! 🎊</h2>
-        <p>Kode Voucher Anda:</p>
-        <div class="voucher-code" id="successVoucherCode">-</div>
-        <p style="font-size: 14px; margin-top: 10px;">Simpan voucher ini untuk digunakan pada transaksi Anda</p>
+        <p style="font-size: 14px; margin-top: 10px;">Simpan dan unduh voucher ini untuk digunakan pada transaksi Anda</p>
+      </div>
+    </div>
+
+    <!-- Already Claimed Info (akan ditampilkan jika sudah klaim) -->
+    <div id="alreadyClaimedInfo" style="display: none;">
+      <div class="already-claimed-info animate">
+        <h2 class="already-claimed-title">⚠️ Voucher Sudah Diklaim</h2>
+        <p>Kode voucher ini sudah berhasil diklaim sebelumnya</p>
       </div>
     </div>
 
@@ -474,12 +529,13 @@
 
     <div class="button-container">
       <button class="cta-button" id="claimButton" style="display: none;">Klaim Voucher Lainnya</button>
-      <button class="download-pdf-btn" id="downloadPdfBtn" style="display: none;">
-        <span class="download-icon">📥</span>
-        Download PDF
-      </button>
     </div>
   </div>
+
+  <!-- Floating Download PDF Button -->
+  <button class="floating-download-btn" id="floatingDownloadBtn" style="display: none;" title="Download PDF Voucher">
+    📥
+  </button>
 
   <div class="overlay" id="overlay">
     <div class="popup">
@@ -562,12 +618,15 @@
     const errorMessage = document.getElementById("errorMessage");
     const warningMessage = document.getElementById("warningMessage");
     const claimButton = document.getElementById("claimButton");
-    const downloadPdfBtn = document.getElementById("downloadPdfBtn");
+    const floatingDownloadBtn = document.getElementById("floatingDownloadBtn");
     const voucherSuccessInfo = document.getElementById("voucherSuccessInfo");
+    const alreadyClaimedInfo = document.getElementById("alreadyClaimedInfo");
     const successVoucherCode = document.getElementById("successVoucherCode");
+    const claimedVoucherCode = document.getElementById("claimedVoucherCode");
 
     let klaimBerhasil = false;
     let voucherCode = "";
+    let isAlreadyClaimed = false;
 
     // Fungsi untuk generate voucher code
     function generateVoucherCode() {
@@ -579,43 +638,159 @@
       return result;
     }
 
-    // Fungsi untuk download PDF dari landing page success
+    // Fungsi untuk download PDF dengan tampilan mobile
     function downloadSuccessPagePDF() {
-      // Sembunyikan tombol sementara saat generate PDF
-      downloadPdfBtn.disabled = true;
-      downloadPdfBtn.innerHTML = '<span class="download-icon">⏳</span> Membuat PDF...';
+      console.log('Memulai download PDF dengan tampilan mobile...');
+      
+      // Sembunyikan floating button sementara
+      floatingDownloadBtn.disabled = true;
+      floatingDownloadBtn.innerHTML = '⏳';
+      floatingDownloadBtn.style.background = '#ccc';
 
-      // Konfigurasi untuk html2pdf
-      const element = mainContent;
-      const opt = {
-        margin: 10,
-        filename: `Voucher_Success_${name}_${voucherCode}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { 
-          scale: 2,
-          useCORS: true,
-          backgroundColor: '#000000'
-        },
-        jsPDF: { 
-          unit: 'mm', 
-          format: 'a4', 
-          orientation: 'portrait' 
-        }
+      // Simpan state asli
+      const originalBodyStyle = {
+        backgroundImage: document.body.style.backgroundImage,
+        backgroundSize: document.body.style.backgroundSize,
+        backgroundPosition: document.body.style.backgroundPosition,
+        backgroundRepeat: document.body.style.backgroundRepeat,
+        backgroundAttachment: document.body.style.backgroundAttachment,
+        padding: document.body.style.padding,
+        display: document.body.style.display,
+        justifyContent: document.body.style.justifyContent,
+        alignItems: document.body.style.alignItems,
+        overflow: document.body.style.overflow
       };
 
-      // Generate PDF
-      html2pdf().set(opt).from(element).save().then(() => {
-        // Reset tombol setelah selesai
-        downloadPdfBtn.disabled = false;
-        downloadPdfBtn.innerHTML = '<span class="download-icon">📥</span> Download PDF';
-        
-        showMessage("PDF berhasil diunduh!", false);
-      }).catch(error => {
-        console.error('Error generating PDF:', error);
-        downloadPdfBtn.disabled = false;
-        downloadPdfBtn.innerHTML = '<span class="download-icon">📥</span> Download PDF';
-        showMessage("Gagal mengunduh PDF. Silakan coba lagi.", true);
+      const originalContainerStyle = {
+        maxWidth: mainContent.style.maxWidth,
+        margin: mainContent.style.margin,
+        padding: mainContent.style.padding,
+        width: mainContent.style.width,
+        opacity: mainContent.style.opacity,
+        backdropFilter: mainContent.style.backdropFilter
+      };
+
+      // Set tampilan mobile untuk PDF
+      document.body.style.backgroundImage = 'none';
+      document.body.style.backgroundColor = '#000';
+      document.body.style.padding = '10px';
+      document.body.style.display = 'block';
+      document.body.style.justifyContent = 'flex-start';
+      document.body.style.alignItems = 'flex-start';
+      document.body.style.overflow = 'visible';
+      
+      mainContent.style.maxWidth = '100%';
+      mainContent.style.width = '100%';
+      mainContent.style.margin = '0 auto';
+      mainContent.style.padding = '20px';
+      mainContent.style.opacity = '1';
+      mainContent.style.backdropFilter = 'none';
+      mainContent.style.background = 'rgba(0, 0, 0, 0.8)';
+
+      // Sembunyikan elemen yang tidak perlu di PDF
+      const elementsToHide = [floatingDownloadBtn, claimButton];
+      const originalDisplay = [];
+      
+      elementsToHide.forEach(el => {
+        originalDisplay.push(el.style.display);
+        el.style.display = 'none';
       });
+
+      // Tunggu sebentar untuk memastikan DOM sudah di-render
+      setTimeout(() => {
+        // Konfigurasi untuk html2pdf
+        const element = mainContent;
+        const opt = {
+          margin: [5, 5, 5, 5],
+          filename: `Voucher_${name.replace(/\s+/g, '_')}_${voucherCode}.pdf`,
+          image: { 
+            type: 'jpeg', 
+            quality: 0.98 
+          },
+          html2canvas: { 
+            scale: 2,
+            useCORS: true,
+            backgroundColor: '#000000',
+            width: element.scrollWidth,
+            height: element.scrollHeight,
+            windowWidth: 375, // Lebar mobile
+            windowHeight: element.scrollHeight + 100
+          },
+          jsPDF: { 
+            unit: 'mm', 
+            format: [80, 150], // Format kecil seperti struk
+            orientation: 'portrait'
+          },
+          pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+        };
+
+        // Generate PDF
+        html2pdf().set(opt).from(element).save().then(() => {
+          console.log('PDF berhasil diunduh');
+          
+          // Kembalikan tampilan ke state semula
+          restoreOriginalStyles(originalBodyStyle, originalContainerStyle, elementsToHide, originalDisplay);
+          
+          // Reset floating button
+          floatingDownloadBtn.disabled = false;
+          floatingDownloadBtn.innerHTML = '📥';
+          floatingDownloadBtn.style.background = '';
+          
+          showMessage("PDF berhasil diunduh!", false);
+        }).catch(error => {
+          console.error('Error generating PDF:', error);
+          
+          // Kembalikan tampilan ke state semula jika error
+          restoreOriginalStyles(originalBodyStyle, originalContainerStyle, elementsToHide, originalDisplay);
+          
+          // Reset floating button
+          floatingDownloadBtn.disabled = false;
+          floatingDownloadBtn.innerHTML = '📥';
+          floatingDownloadBtn.style.background = '';
+          
+          showMessage("Gagal mengunduh PDF. Silakan coba lagi.", true);
+        });
+      }, 500);
+    }
+
+    // Fungsi untuk mengembalikan style asli
+    function restoreOriginalStyles(bodyStyle, containerStyle, elementsToHide, originalDisplay) {
+      // Kembalikan style body
+      document.body.style.backgroundImage = bodyStyle.backgroundImage;
+      document.body.style.backgroundSize = bodyStyle.backgroundSize;
+      document.body.style.backgroundPosition = bodyStyle.backgroundPosition;
+      document.body.style.backgroundRepeat = bodyStyle.backgroundRepeat;
+      document.body.style.backgroundAttachment = bodyStyle.backgroundAttachment;
+      document.body.style.padding = bodyStyle.padding;
+      document.body.style.display = bodyStyle.display;
+      document.body.style.justifyContent = bodyStyle.justifyContent;
+      document.body.style.alignItems = bodyStyle.alignItems;
+      document.body.style.overflow = bodyStyle.overflow;
+
+      // Kembalikan style container
+      mainContent.style.maxWidth = containerStyle.maxWidth;
+      mainContent.style.margin = containerStyle.margin;
+      mainContent.style.padding = containerStyle.padding;
+      mainContent.style.width = containerStyle.width;
+      mainContent.style.opacity = containerStyle.opacity;
+      mainContent.style.backdropFilter = containerStyle.backdropFilter;
+      mainContent.style.background = containerStyle.background;
+
+      // Tampilkan kembali elemen yang disembunyikan
+      elementsToHide.forEach((el, index) => {
+        el.style.display = originalDisplay[index];
+      });
+    }
+
+    // Fungsi untuk menampilkan floating download button
+    function showFloatingDownloadButton() {
+      floatingDownloadBtn.style.display = 'flex';
+      floatingDownloadBtn.classList.add('pulse');
+      
+      // Hapus pulse animation setelah 5 detik
+      setTimeout(() => {
+        floatingDownloadBtn.classList.remove('pulse');
+      }, 5000);
     }
 
     // Fungsi untuk mengubah background
@@ -676,7 +851,14 @@
       setTimeout(() => {
         overlay.classList.add("hidden");
         mainContent.classList.add("active");
-        setBackgroundImage('./background-success.jpg');
+        setBackgroundImage('./voucher-bg.jpg');
+        
+        // Tampilkan info already claimed
+        alreadyClaimedInfo.style.display = 'block';
+        claimedVoucherCode.textContent = localStorage.getItem(correctReferralCode.toUpperCase() + '_voucher') || 'VCH-XXXXXXXX';
+        
+        // Tampilkan floating download button
+        showFloatingDownloadButton();
       }, 3000);
     }
 
@@ -747,6 +929,7 @@
 
         // Generate voucher code
         voucherCode = generateVoucherCode();
+        console.log('Voucher code generated:', voucherCode);
 
         const payload = {
           code: code.toUpperCase(),
@@ -756,6 +939,8 @@
           voucher_code: voucherCode,
           claim_date: new Date().toISOString()
         };
+
+        console.log('Mengirim data ke Google Sheet:', payload);
 
         try {
           const response = await fetch(GOOGLE_SCRIPT_URL, {
@@ -779,10 +964,12 @@
           };
           
         } catch (fetchError) {
+          console.log('Fetch failed, trying JSONP:', fetchError);
           try {
             const result = await sendToGoogleSheetJSONP(code);
             return result;
           } catch (jsonpError) {
+            console.log('JSONP also failed:', jsonpError);
             return {
               success: true,
               message: "✅ Klaim voucher berhasil! (Simulasi)",
@@ -825,7 +1012,9 @@
         popupReferralAddressElement.textContent = customerAddress;
       }
       
+      // Simpan ke localStorage
       localStorage.setItem(userReferralCode.toUpperCase(), "used");
+      localStorage.setItem(userReferralCode.toUpperCase() + '_voucher', voucherCode);
       
       setTimeout(() => {
         overlay.classList.add("hidden");
@@ -836,29 +1025,32 @@
         successVoucherCode.textContent = voucherCode;
         voucherSuccessInfo.style.display = 'block';
         
-        // Tampilkan tombol download PDF
-        downloadPdfBtn.style.display = 'inline-flex';
-        
-        // Tampilkan tombol klaim lainnya (opsional)
+        // Tampilkan tombol klaim lainnya
         claimButton.style.display = 'inline-block';
+        
+        // Tampilkan floating download button
+        showFloatingDownloadButton();
       }, 3000);
     }
 
     // Inisialisasi saat DOM siap
     document.addEventListener("DOMContentLoaded", function () {
+      console.log('DOM loaded');
       mainReferralNameElement.textContent = name;
       popupReferralNameElement.textContent = name;
       popupReferralCompanyElement.textContent = company;
       popupReferralAddressElement.textContent = address;
       
-      setBackgroundImage('./background.jpg');
+      setBackgroundImage('./voucher-bg.jpg');
       overlay.classList.add("active");
       
       setTimeout(() => {
         referralInput.focus();
       }, 500);
 
+      // Cek jika kode sudah digunakan sebelumnya
       if (correctReferralCode && localStorage.getItem(correctReferralCode.toUpperCase()) === "used") {
+        isAlreadyClaimed = true;
         handleAlreadyClaimed();
       }
     });
@@ -867,16 +1059,22 @@
       referralInput.disabled = true;
       submitReferralBtn.disabled = true;
       submitReferralBtn.textContent = "Sudah Diklaim";
-      showMessage("Kode referral ini sudah digunakan dan tidak dapat diklaim lagi.", true);
+      
+      // Langsung tampilkan main content untuk already claimed
+      overlay.classList.add("hidden");
       mainContent.classList.add("active");
       setBackgroundImage('./voucher-bg.jpg');
-      setTimeout(() => {
-        overlay.classList.add("hidden");
-      }, 1000);
+      
+      // Tampilkan info already claimed
+      alreadyClaimedInfo.style.display = 'block';
+      claimedVoucherCode.textContent = localStorage.getItem(correctReferralCode.toUpperCase() + '_voucher') || 'VCH-XXXXXXXX';
+      
+      // Tampilkan floating download button
+      showFloatingDownloadButton();
     }
 
     // Event Listeners
-    downloadPdfBtn.addEventListener("click", downloadSuccessPagePDF);
+    floatingDownloadBtn.addEventListener("click", downloadSuccessPagePDF);
 
     claimButton.addEventListener("click", () => {
       // Reset form untuk klaim baru
@@ -887,7 +1085,8 @@
       submitReferralBtn.textContent = "Verifikasi & Klaim";
       successMessage.style.display = 'none';
       voucherSuccessInfo.style.display = 'none';
-      downloadPdfBtn.style.display = 'none';
+      alreadyClaimedInfo.style.display = 'none';
+      floatingDownloadBtn.style.display = 'none';
       claimButton.style.display = 'none';
       
       overlay.classList.add("active");
@@ -937,6 +1136,7 @@
 
       try {
         const result = await sendToGoogleSheet(userReferralCode);
+        console.log('Result from server:', result);
 
         if (result.success) {
           showMessage(result.message);
