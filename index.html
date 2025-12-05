@@ -998,6 +998,11 @@
       successMessage.style.display = 'block';
       submitReferralBtn.style.display = 'none';
       referralInput.disabled = true;
+      // Kirim request update status ke Apps Script
+fetch(`${GOOGLE_SCRIPT_URL}?name=${encodeURIComponent(customerName)}&company=${encodeURIComponent(customerCompany)}&code=${encodeURIComponent(userReferralCode)}`)
+  .then(() => console.log("✔ Status klaim dikirim ke Apps Script"))
+  .catch(err => console.error("❌ Gagal mengirim klaim ke backend:", err));
+
       closePopupBtn.classList.add("enabled");
       closePopupBtn.style.cursor = "pointer";
       
