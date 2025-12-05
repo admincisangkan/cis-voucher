@@ -7,6 +7,7 @@
   <!-- Include html2pdf library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
+    /* CSS tetap sama, tidak ada perubahan */
     * {
       margin: 0;
       padding: 0;
@@ -560,10 +561,7 @@
           <span class="info-label">Perusahaan:</span>
           <span class="info-value" id="popupReferralCompany">-</span>
         </div>
-        <div class="info-item">
-          <span class="info-label">Alamat:</span>
-          <span class="info-value" id="popupReferralAddress">-</span>
-        </div>
+        <!-- HAPUS BAGIAN ALAMAT DARI SINI -->
       </div>
 
       <div class="referral-form">
@@ -598,14 +596,13 @@
     // URL Web App Google Script
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwdOBo0TGHpcklYSjEtXM13NHQqQbJXiTx2YMTK0u5t-4eJXs_W_4pVkZv_TSgcrW4QKg/exec";
 
-    // Ambil parameter dari URL
+    // Ambil parameter dari URL - HAPUS PARAMETER ADDRESS
     const urlParams = new URLSearchParams(window.location.search);
     const name = urlParams.get("name") || "Tidak tersedia";
     const company = urlParams.get("company") || "Tidak tersedia";
-    const address = urlParams.get("address") || "Tidak tersedia";
-    const correctReferralCode = urlParams.get("code") || "";
+    const correctReferralCode = urlParams.get("code") || ""; // HAPUS ADDRESS DARI SINI
 
-    // Element references
+    // Element references - HAPUS REFERENSI KE ADDRESS
     const overlay = document.getElementById("overlay");
     const closePopupBtn = document.getElementById("closePopup");
     const submitReferralBtn = document.getElementById("submitReferral");
@@ -613,7 +610,7 @@
     const mainReferralNameElement = document.getElementById("mainReferralName");
     const popupReferralNameElement = document.getElementById("popupReferralName");
     const popupReferralCompanyElement = document.getElementById("popupReferralCompany");
-    const popupReferralAddressElement = document.getElementById("popupReferralAddress");
+    // HAPUS REFERENSI popupReferralAddressElement
     const mainContent = document.getElementById("mainContent");
     const loadingElement = document.getElementById("loading");
     const successMessage = document.getElementById("successMessage");
@@ -886,7 +883,7 @@
           code: code.toUpperCase(),
           name: name,
           company: company,
-          address: address,
+          // HAPUS ADDRESS DARI PAYLOAD
           voucher_code: voucherCode,
           claim_date: new Date().toISOString()
         });
@@ -937,7 +934,7 @@
           code: code.toUpperCase(),
           name: name,
           company: company,
-          address: address,
+          // HAPUS ADDRESS DARI PAYLOAD
           voucher_code: voucherCode,
           claim_date: new Date().toISOString()
         };
@@ -961,7 +958,7 @@
             message: "✅ Klaim voucher berhasil! Data sedang diproses.",
             customerName: name,
             customerCompany: company,
-            customerAddress: address,
+            // HAPUS customerAddress
             voucherCode: voucherCode
           };
           
@@ -977,7 +974,7 @@
               message: "✅ Klaim voucher berhasil! (Simulasi)",
               customerName: name,
               customerCompany: company,
-              customerAddress: address,
+              // HAPUS customerAddress
               voucherCode: voucherCode
             };
           }
@@ -994,7 +991,7 @@
     }
 
     // Fungsi untuk menangani state setelah klaim berhasil
-    function handleSuccessState(userReferralCode, customerName, customerCompany, customerAddress, generatedVoucherCode) {
+    function handleSuccessState(userReferralCode, customerName, customerCompany, generatedVoucherCode) {
       klaimBerhasil = true;
       voucherCode = generatedVoucherCode || voucherCode;
       
@@ -1010,9 +1007,7 @@
       if (customerCompany) {
         popupReferralCompanyElement.textContent = customerCompany;
       }
-      if (customerAddress) {
-        popupReferralAddressElement.textContent = customerAddress;
-      }
+      // HAPUS PENAMPILAN ADDRESS
       
       // Simpan ke localStorage
       localStorage.setItem(userReferralCode.toUpperCase(), "used");
@@ -1041,7 +1036,7 @@
       mainReferralNameElement.textContent = name;
       popupReferralNameElement.textContent = name;
       popupReferralCompanyElement.textContent = company;
-      popupReferralAddressElement.textContent = address;
+      // HAPUS INISIALISASI ADDRESS
       
       setBackgroundImage('./voucher-bg.jpg');
       overlay.classList.add("active");
@@ -1146,7 +1141,7 @@
             userReferralCode, 
             result.customerName || name,
             result.customerCompany || company,
-            result.customerAddress || address,
+            // HAPUS ADDRESS
             result.voucherCode
           );
         } else {
@@ -1165,9 +1160,7 @@
           if (result.customerCompany && result.customerCompany !== "-") {
             popupReferralCompanyElement.textContent = result.customerCompany;
           }
-          if (result.customerAddress && result.customerAddress !== "-") {
-            popupReferralAddressElement.textContent = result.customerAddress;
-          }
+          // HAPUS PENAMPILAN ADDRESS
         }
 
       } catch (error) {
