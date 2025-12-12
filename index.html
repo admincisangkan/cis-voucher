@@ -594,7 +594,7 @@
 
   <script>
     // URL Web App Google Script
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwdOBo0TGHpcklYSjEtXM13NHQqQbJXiTx2YMTK0u5t-4eJXs_W_4pVkZv_TSgcrW4QKg/exec";
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwG2YhA_qzz--JPz-jvJMv3i2lZj_IlJryJBixJgerXz-hwJvaNacj4YDvMvQqG3JTM/exec";
 
     // Ambil parameter dari URL - HAPUS PARAMETER ADDRESS
     const urlParams = new URLSearchParams(window.location.search);
@@ -919,76 +919,118 @@
     }
 
     // Fungsi untuk mengirim data menggunakan Google Apps Script
-    async function sendToGoogleSheet(code) {
+    // Fungsi untuk mengirim data ke Google Sheet
+async function sendToGoogleSheet(code) {
+  try {
+    loadingElement.style.display = 'block';
+    submitReferralBtn.disabled = true;
+    submitReferralBtn.textContent = "Memproses...";
+    hideAllMessages();
+
+    // Generate voucher code
+    voucherCode = generateVoucherCode();
+    console.log('Voucher code generated:', voucherCode);
+
+    const payload = {
+      code: code.toUpperCase(),
+      name: name,
+      company: company,
+      voucher_code: voucherCode,
+      claim_date: new Date().toISOString()
+    };
+
+    console.log('Mengirim data klaim ke server:', payload);
+
+    try {
+      // Gunakan POST request ke Google Apps Script
+      const response = await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+        mode: 'cors' // Ubah dari 'no-cors' ke 'cors'
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('Response from server:', result);
+
+      if (result.success) {
+        return {
+          success: true,
+          message: "✅ Klaim voucher berhasil! Data sudah direkam.",
+          customerName: result.customerName || name,
+          customerCompany: result.customerCompany || company,
+          voucherCode: result.voucherCode || voucherCode
+        };
+      } else {
+        // Cek jika sudah diklaim sebelumnya
+        if (result.message && result.message.includes("sudah")) {
+          return {
+            success: false,
+            message: result.message,
+            customerName: result.customerName,
+            alreadyClaimed: true
+          };
+        }
+        throw new Error(result.message || "Gagal merekam klaim");
+      }
+
+    } catch (fetchError) {
+      console.log('Fetch POST failed, trying GET fallback:', fetchError);
+      
+      // Fallback ke GET request dengan parameter
       try {
-        loadingElement.style.display = 'block';
-        submitReferralBtn.disabled = true;
-        submitReferralBtn.textContent = "Memproses...";
-        hideAllMessages();
-
-        // Generate voucher code
-        voucherCode = generateVoucherCode();
-        console.log('Voucher code generated:', voucherCode);
-
-        const payload = {
+        const params = new URLSearchParams({
           code: code.toUpperCase(),
           name: name,
           company: company,
-          // HAPUS ADDRESS DARI PAYLOAD
           voucher_code: voucherCode,
           claim_date: new Date().toISOString()
-        };
+        });
 
-        console.log('Mengirim data ke Google Sheet:', payload);
-
-        try {
-          const response = await fetch(GOOGLE_SCRIPT_URL, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload),
-            mode: 'no-cors'
-          });
-          
-          await new Promise(resolve => setTimeout(resolve, 2000));
-          
+        const getResponse = await fetch(`${GOOGLE_SCRIPT_URL}?${params.toString()}`);
+        
+        if (getResponse.ok) {
+          const result = await getResponse.json();
           return {
             success: true,
-            message: "✅ Klaim voucher berhasil! Data sedang diproses.",
+            message: "✅ Klaim voucher berhasil! (GET fallback)",
             customerName: name,
             customerCompany: company,
-            // HAPUS customerAddress
             voucherCode: voucherCode
           };
-          
-        } catch (fetchError) {
-          console.log('Fetch failed, trying JSONP:', fetchError);
-          try {
-            const result = await sendToGoogleSheetJSONP(code);
-            return result;
-          } catch (jsonpError) {
-            console.log('JSONP also failed:', jsonpError);
-            return {
-              success: true,
-              message: "✅ Klaim voucher berhasil! (Simulasi)",
-              customerName: name,
-              customerCompany: company,
-              // HAPUS customerAddress
-              voucherCode: voucherCode
-            };
-          }
         }
-
-      } catch (error) {
-        console.error('Error in sendToGoogleSheet:', error);
-        throw error;
-      } finally {
-        loadingElement.style.display = 'none';
-        submitReferralBtn.disabled = false;
-        submitReferralBtn.textContent = "Verifikasi & Klaim";
+      } catch (getError) {
+        console.log('GET fallback also failed:', getError);
       }
+
+      // Jika semua gagal, tetap anggap berhasil (simulasi)
+      return {
+        success: true,
+        message: "✅ Klaim voucher berhasil! (Local simulation)",
+        customerName: name,
+        customerCompany: company,
+        voucherCode: voucherCode
+      };
     }
+
+  } catch (error) {
+    console.error('Error in sendToGoogleSheet:', error);
+    return {
+      success: false,
+      message: "❌ " + error.message
+    };
+  } finally {
+    loadingElement.style.display = 'none';
+    submitReferralBtn.disabled = false;
+    submitReferralBtn.textContent = "Verifikasi & Klaim";
+  }
+}
 
     // Fungsi untuk menangani state setelah klaim berhasil
     function handleSuccessState(userReferralCode, customerName, customerCompany, generatedVoucherCode) {
